@@ -1,12 +1,10 @@
-import dotenv from 'dotenv';
-dotenv.config();
 import axios from 'axios';
 
-class AIService {
+class OpenRouterService {
   constructor() {
     this.apiKey = process.env.OPENROUTER_API_KEY;
     this.baseURL = 'https://openrouter.ai/api/v1';
-    console.log('✅ OpenRouter AI service initialized');
+    console.log('✅ OpenRouter service initialized');
   }
 
   async generateContent(prompt) {
@@ -16,16 +14,14 @@ class AIService {
       const response = await axios.post(
         `${this.baseURL}/chat/completions`,
         {
-          model: "meituan/longcat-flash-chat:free",
+          model: "meituan/longcat-flash-chat:free", // Free model from your example
           messages: [
-            { 
-              role: "system", 
-              content: "You are an educational assistant. For quiz generation, return ONLY valid JSON format." 
-            },
-            { role: "user", content: prompt },
+            {
+              "role": "user",
+              "content": prompt
+            }
           ],
-          max_tokens: 2000,
-          temperature: 0.7,
+          max_tokens: 1500,
         },
         {
           headers: {
@@ -44,9 +40,9 @@ class AIService {
       
     } catch (error) {
       console.error('❌ OpenRouter error:', error.message);
-      throw new Error('AI service failed');
+      throw new Error('OpenRouter service failed');
     }
   }
 }
 
-export default new AIService();
+export default new OpenRouterService();
