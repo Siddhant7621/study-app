@@ -2,9 +2,13 @@ import express from 'express';
 import Book from '../models/Book.js';
 import Quiz from '../models/Quiz.js';
 import { QuizService } from '../services/quizService.js';
+import { authMiddleware } from '../middleware/auth.js';
 
 const router = express.Router();
 const quizService = new QuizService();
+
+// Apply auth middleware to all routes
+router.use(authMiddleware);
 
 // Generate quiz for a book
 router.post('/generate/:bookId', async (req, res) => {
@@ -29,8 +33,9 @@ router.post('/submit/:quizId', async (req, res) => {
   try {
     const { quizId } = req.params;
     const { answers } = req.body;
+    const userId = req.user._id;  // Get userId from authenticated user
 
-    const result = await quizService.evaluateQuiz(quizId, answers);
+    const result = await quizService.evaluateQuiz(quizId, answers, userId);
     res.json(result);
   } catch (error) {
     console.error('Quiz evaluation error:', error);

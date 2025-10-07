@@ -6,17 +6,31 @@ class AIService {
   constructor() {
     this.apiKey = process.env.OPENROUTER_API_KEY;
     this.baseURL = 'https://openrouter.ai/api/v1';
+    this.lastRequestTime = 0;
+    this.minRequestInterval = 2000; // 2 seconds between requests
     console.log('✅ OpenRouter AI service initialized');
   }
 
   async generateContent(prompt) {
+    // Rate limiting: wait if we're making requests too fast
+    const now = Date.now();
+    const timeSinceLastRequest = now - this.lastRequestTime;
+    
+    if (timeSinceLastRequest < this.minRequestInterval) {
+      const waitTime = this.minRequestInterval - timeSinceLastRequest;
+      console.log(`⏳ Rate limiting: waiting ${waitTime}ms`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+
+    this.lastRequestTime = Date.now();
+
     try {
       console.log('🤖 Sending to OpenRouter...');
       
       const response = await axios.post(
         `${this.baseURL}/chat/completions`,
         {
-          model: "meituan/longcat-flash-chat:free",
+          model: "qwen/qwen3-235b-a22b:free",
           messages: [
             { 
               role: "system", 
@@ -34,7 +48,7 @@ class AIService {
             'HTTP-Referer': 'http://localhost:3000',
             'X-Title': 'Study Assistant App'
           },
-          timeout: 30000
+          timeout: 45000 // Increased timeout to 45 seconds
         }
       );
 
@@ -44,6 +58,11 @@ class AIService {
       
     } catch (error) {
       console.error('❌ OpenRouter error:', error.message);
+      
+      if (error.response?.status === 429) {
+        console.log('💡 Rate limit hit. Consider upgrading or using a different model.');
+      }
+      
       throw new Error('AI service failed');
     }
   }

@@ -7,8 +7,9 @@ const progressSchema = new mongoose.Schema({
     required: true
   },
   userId: {
-    type: String,
-    default: 'default-user'
+    type: mongoose.Schema.Types.ObjectId,  // Changed from String
+    ref: 'User',
+    required: true
   },
   totalQuizzes: {
     type: Number,
@@ -28,5 +29,8 @@ const progressSchema = new mongoose.Schema({
     default: Date.now
   }
 });
+
+// Compound index for unique user-book combination
+progressSchema.index({ userId: 1, bookId: 1 }, { unique: true });
 
 export default mongoose.model('Progress', progressSchema);
