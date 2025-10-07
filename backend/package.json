@@ -13,13 +13,15 @@
   "license": "ISC",
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "axios": "^1.12.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "mongoose": "^8.19.0",
     "multer": "^2.0.2",
     "openai": "^6.1.0",
-    "pdf-parse": "^2.1.7"
+    "pdf-parse": "^2.1.7",
+    "sambanova": "^1.1.2"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"

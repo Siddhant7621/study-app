@@ -85,12 +85,14 @@ import uploadRoutes from './routes/upload.js';
 import bookRoutes from './routes/books.js';
 import quizRoutes from './routes/quiz.js';
 import chatRoutes from './routes/chat.js';
+import youtubeRoutes from './routes/youtube.js';
 
 // Routes
 app.use('/api/upload', uploadRoutes);
 app.use('/api/books', bookRoutes);
 app.use('/api/quiz', quizRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/youtube', youtubeRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {
