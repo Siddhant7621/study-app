@@ -11,6 +11,8 @@ const quizService = new QuizService();
 router.use(authMiddleware);
 
 // Generate quiz for a book
+// In backend/routes/quiz.js
+// In backend/routes/quiz.js
 router.post('/generate/:bookId', async (req, res) => {
   try {
     const { bookId } = req.params;
@@ -20,11 +22,42 @@ router.post('/generate/:bookId', async (req, res) => {
       return res.status(404).json({ error: 'Book not found' });
     }
 
+    // Check if book has text content
+    if (!book.textContent || book.textContent.trim().length < 50) {
+      return res.status(400).json({ 
+        error: 'Book content is too short or empty. Please upload a book with sufficient text content.' 
+      });
+    }
+
     const quiz = await quizService.generateQuiz(bookId, book.textContent);
     res.json(quiz);
   } catch (error) {
-    console.error('Quiz generation error:', error);
-    res.status(500).json({ error: 'Failed to generate quiz' });
+    console.error('Quiz generation error:', error.message);
+    
+    // Return specific error messages based on the error
+    const errorMessage = error.message.toLowerCase();
+    
+    if (errorMessage.includes('rate limit') || errorMessage.includes('overloaded')) {
+      return res.status(503).json({ 
+        error: 'AI service is currently overloaded. Please try again in a few moments.' 
+      });
+    } else if (errorMessage.includes('authentication') || errorMessage.includes('api key')) {
+      return res.status(500).json({ 
+        error: 'AI service configuration error. Please contact support.' 
+      });
+    } else if (errorMessage.includes('timeout')) {
+      return res.status(504).json({ 
+        error: 'AI service request timeout. Please try again.' 
+      });
+    } else if (errorMessage.includes('empty') || errorMessage.includes('invalid format')) {
+      return res.status(500).json({ 
+        error: 'AI service returned an unexpected response. Please try generating the quiz again.' 
+      });
+    } else {
+      return res.status(500).json({ 
+        error: 'Failed to generate quiz. Please try again.' 
+      });
+    }
   }
 });
 

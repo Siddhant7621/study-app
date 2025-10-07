@@ -30,7 +30,7 @@ class AIService {
       const response = await axios.post(
         `${this.baseURL}/chat/completions`,
         {
-          model: "qwen/qwen3-235b-a22b:free",
+          model: "tencent/hunyuan-a13b-instruct:free",
           messages: [
             { 
               role: "system", 
@@ -52,18 +52,45 @@ class AIService {
         }
       );
 
+      // Check if response structure is valid
+      if (!response.data || !response.data.choices || !response.data.choices[0] || !response.data.choices[0].message) {
+        throw new Error('Invalid response structure from AI service');
+      }
+
       const result = response.data.choices[0].message.content;
+      
+      if (!result || result.trim() === '') {
+        throw new Error('Empty response from AI service');
+      }
+
       console.log('✅ OpenRouter response received');
       return result;
       
     } catch (error) {
-      console.error('❌ OpenRouter error:', error.message);
+      console.error('❌ OpenRouter error details:', {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+        code: error.code
+      });
+      
+      let errorMessage = 'AI service failed';
       
       if (error.response?.status === 429) {
-        console.log('💡 Rate limit hit. Consider upgrading or using a different model.');
+        errorMessage = 'AI service rate limit exceeded. Please try again in a few moments.';
+      } else if (error.response?.status === 401) {
+        errorMessage = 'AI service authentication failed. Please check API configuration.';
+      } else if (error.code === 'ECONNABORTED') {
+        errorMessage = 'AI service request timeout. Please try again.';
+      } else if (error.response?.status >= 500) {
+        errorMessage = 'AI service is currently overloaded. Please try again later.';
+      } else if (error.message.includes('Invalid response structure')) {
+        errorMessage = 'AI service returned invalid response format.';
+      } else if (error.message.includes('Empty response')) {
+        errorMessage = 'AI service returned empty response.';
       }
       
-      throw new Error('AI service failed');
+      throw new Error(errorMessage);
     }
   }
 }
