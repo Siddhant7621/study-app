@@ -231,12 +231,12 @@ const SimplePDFViewer = ({ fileUrl, bookId, onBookCompleted }) => {
 
   return (
     <>
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 ">
         {/* Header */}
-        <div className="flex justify-between items-center mb-4">
+        <div className="sm:flex justify-between items-center mb-4">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">PDF Viewer</h2>
-            <p className="text-gray-600 text-sm mt-1">
+            <h2 className="sm:text-xl text-sm font-semibold text-gray-900 ml-2">PDF Viewer</h2>
+            <p className="text-gray-600 sm:text-sm text-xs mt-1 ml-2">
               {isCloudinaryUrl ? (
                 <span className="inline-flex items-center">
                   <CloudIcon className="w-4 h-4 mr-1" />
@@ -247,9 +247,9 @@ const SimplePDFViewer = ({ fileUrl, bookId, onBookCompleted }) => {
               )}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="sm:flex sm:gap-2 gap-6">
             {isCloudinaryUrl && (
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+              <span className="inline-flex items-center mt-1 sm:mt-0 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                 <CloudIcon className="w-3 h-3 mr-1" />
                 Cloudinary
               </span>
@@ -257,31 +257,66 @@ const SimplePDFViewer = ({ fileUrl, bookId, onBookCompleted }) => {
             {bookId && (
               <button
                 onClick={() => setShowCompletionModal(true)}
-                className="inline-flex items-center px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors duration-200"
+                className="inline-flex items-center px-4 py-2 mt-2 sm:mt-0 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors duration-200"
               >
                 <CheckIcon />
-                <span className="ml-2">Mark Completed</span>
+                <span className="ml-2 ">Mark Completed</span>
               </button>
             )}
             <button
               onClick={() => window.open(fileUrl, "_blank")}
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
+              className="inline-flex items-center px-4 py-2 mt-2 sm:mt-0 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
             >
               <OpenInNewIcon />
-              <span className="ml-2">Open in New Tab</span>
+              <span className="ml-2 ">Open in New Tab</span>
             </button>
             <button
               onClick={handleDownload}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200"
+              className="inline-flex items-center px-4 py-2 mt-2 sm:mt-0 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200"
             >
               <DownloadIcon />
-              <span className="ml-2">Download</span>
+              <span className="ml-2 ">Download</span>
             </button>
           </div>
         </div>
 
+        {/* PDF */}
+        <div className="border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
+          <iframe
+            src={fileUrl}
+            width="100%"
+            height="600px"
+            title="PDF Viewer"
+            className="border-0"
+            loading="lazy"
+          />
+        </div>
+
+        {/* Footer */}
+        <div className="mt-4 flex justify-between items-center text-sm text-gray-500">
+          <div className="flex items-center space-x-4">
+            <span>📄 PDF Document</span>
+            <span>•</span>
+            {isCloudinaryUrl ? (
+              <span className="inline-flex items-center">
+                <CloudIcon className="w-3 h-3 mr-1" />
+                Cloud Delivery
+              </span>
+            ) : (
+              <span>🔍 Search enabled</span>
+            )}
+            <span>•</span>
+            <span>🖨️ Print ready</span>
+          </div>
+          <button
+            onClick={() => window.open(fileUrl, "_blank")}
+            className="text-blue-600 hover:text-blue-800 font-medium transition-colors duration-200"
+          >
+            Open in full window →
+          </button>
+        </div>
         {/* Info */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-3 b mt-4">
           <div className="flex">
             <div className="flex-shrink-0">
               <svg className="h-5 w-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -321,42 +356,6 @@ const SimplePDFViewer = ({ fileUrl, bookId, onBookCompleted }) => {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* PDF */}
-        <div className="border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
-          <iframe
-            src={fileUrl}
-            width="100%"
-            height="600px"
-            title="PDF Viewer"
-            className="border-0"
-            loading="lazy"
-          />
-        </div>
-
-        {/* Footer */}
-        <div className="mt-4 flex justify-between items-center text-sm text-gray-500">
-          <div className="flex items-center space-x-4">
-            <span>📄 PDF Document</span>
-            <span>•</span>
-            {isCloudinaryUrl ? (
-              <span className="inline-flex items-center">
-                <CloudIcon className="w-3 h-3 mr-1" />
-                Cloud Delivery
-              </span>
-            ) : (
-              <span>🔍 Search enabled</span>
-            )}
-            <span>•</span>
-            <span>🖨️ Print ready</span>
-          </div>
-          <button
-            onClick={() => window.open(fileUrl, "_blank")}
-            className="text-blue-600 hover:text-blue-800 font-medium transition-colors duration-200"
-          >
-            Open in full window →
-          </button>
         </div>
       </div>
 

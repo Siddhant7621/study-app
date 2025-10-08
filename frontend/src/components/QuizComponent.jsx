@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { toast } from 'react-hot-toast';
 
 const QuizComponent = ({ bookId }) => {
   const [quiz, setQuiz] = useState(null);
@@ -19,7 +20,7 @@ const QuizComponent = ({ bookId }) => {
 
   const generateQuiz = async () => {
     setLoading(true);
-    setGeneratingNewQuiz(false);
+    // setGeneratingNewQuiz(false);
     try {
       const response = await axios.post(`http://localhost:5001/api/quiz/generate/${bookId}`);
       setQuiz(response.data);
@@ -27,18 +28,24 @@ const QuizComponent = ({ bookId }) => {
       setCurrentQuestion(0);
       setSubmitted(false);
       setResults(null);
+      toast.success('Quiz generated successfully!');
     } catch (error) {
       console.error('Failed to generate quiz:', error);
-      alert('Failed to generate quiz. Please try again.');
+      toast.error('Failed to generate quiz. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   const generateAnotherQuiz = async () => {
-    setGeneratingNewQuiz(true);
+  setGeneratingNewQuiz(true);
+  try {
     await generateQuiz();
-  };
+  } finally {
+    setGeneratingNewQuiz(false);
+  }
+};
+
 
   const handleAnswerChange = (value) => {
     const newAnswers = [...userAnswers];
@@ -72,9 +79,10 @@ const QuizComponent = ({ bookId }) => {
       });
       setResults(response.data);
       setSubmitted(true);
+      toast.success(`Quiz submitted! Score: ${response.data.score.toFixed(1)}%`);
     } catch (error) {
       console.error('Submission failed:', error);
-      alert('Failed to submit quiz. Please try again.');
+      toast.error('Failed to submit quiz. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -255,6 +263,7 @@ const QuizComponent = ({ bookId }) => {
               setQuiz(null);
               setResults(null);
               setSubmitted(false);
+              toast('Returned to quiz menu');
             }}
             className="inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 font-medium rounded-lg transition-colors duration-200"
           >

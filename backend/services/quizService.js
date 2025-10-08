@@ -24,11 +24,11 @@ export class QuizService {
         try {
           console.log("🤖 Sending to OpenRouter...");
           const response = await aiService.generateContent(prompt);
-          
+
           if (!response) {
-            throw new Error('AI service returned no response');
+            throw new Error("AI service returned no response");
           }
-          
+
           console.log("📝 Raw AI response received, length:", response.length);
           const quizData = this.parseQuizResponse(response);
 
@@ -43,7 +43,9 @@ export class QuizService {
         } catch (aiError) {
           console.log("❌ AI service failed:", aiError.message);
           // No fallback - throw clear error message
-          throw new Error(`AI service is currently unavailable. Please try again later. Error: ${aiError.message}`);
+          throw new Error(
+            `AI service is currently unavailable. Please try again later. Error: ${aiError.message}`
+          );
         }
       })();
 
@@ -105,28 +107,34 @@ CRITICAL: Return ONLY the JSON object, no additional text, no markdown formattin
   parseQuizResponse(response) {
     try {
       console.log("🔧 Parsing AI response...");
-      
+
       // More robust cleaning
       let cleanedResponse = response
-        .replace(/```json\s*/g, '')
-        .replace(/```\s*/g, '')
-        .replace(/^JSON:\s*/i, '')
+        .replace(/```json\s*/g, "")
+        .replace(/```\s*/g, "")
+        .replace(/^JSON:\s*/i, "")
         .trim();
 
       // Remove any thinking process or text before/after JSON
-      const jsonStartIndex = cleanedResponse.indexOf('{');
-      const jsonEndIndex = cleanedResponse.lastIndexOf('}') + 1;
-      
+      const jsonStartIndex = cleanedResponse.indexOf("{");
+      const jsonEndIndex = cleanedResponse.lastIndexOf("}") + 1;
+
       if (jsonStartIndex !== -1 && jsonEndIndex !== -1) {
-        cleanedResponse = cleanedResponse.substring(jsonStartIndex, jsonEndIndex);
+        cleanedResponse = cleanedResponse.substring(
+          jsonStartIndex,
+          jsonEndIndex
+        );
       } else {
         throw new Error("No valid JSON structure found in AI response");
       }
 
-      console.log("Cleaned response sample:", cleanedResponse.substring(0, 200) + "...");
+      console.log(
+        "Cleaned response sample:",
+        cleanedResponse.substring(0, 200) + "..."
+      );
 
       const quizData = JSON.parse(cleanedResponse);
-      
+
       // Validate the structure
       if (!quizData.questions || !Array.isArray(quizData.questions)) {
         throw new Error("Invalid quiz structure: missing questions array");
@@ -138,92 +146,102 @@ CRITICAL: Return ONLY the JSON object, no additional text, no markdown formattin
       console.error("❌ Failed to parse quiz response:", error.message);
       console.log("Raw response length:", response.length);
       console.log("Raw response sample:", response.substring(0, 500) + "...");
-      throw new Error(`AI returned invalid format. Please try again. Error: ${error.message}`);
+      throw new Error(
+        `AI returned invalid format. Please try again. Error: ${error.message}`
+      );
     }
   }
 
   async evaluateQuiz(quizId, userAnswers, userId) {
-    try {
-      const quiz = await Quiz.findById(quizId);
-      if (!quiz) {
-        throw new Error("Quiz not found");
-      }
-
-      let score = 0;
-      let correctMCQs = 0;
-      let totalMCQs = 0;
-      const results = [];
-
-      quiz.questions.forEach((question, index) => {
-        const userAnswer = userAnswers[index];
-        let isCorrect = false;
-
-        if (question.type === "mcq") {
-          totalMCQs++;
-          isCorrect = userAnswer === question.correctAnswer;
-          if (isCorrect) correctMCQs++;
-        } else {
-          isCorrect = userAnswer && userAnswer.trim().length > 0;
-        }
-
-        if (isCorrect) score++;
-
-        results.push({
-          question: question.question,
-          userAnswer,
-          correctAnswer: question.correctAnswer,
-          explanation: question.explanation,
-          isCorrect,
-          type: question.type,
-        });
-      });
-
-      const finalScore = (score / quiz.questions.length) * 100;
-
-      quiz.score = finalScore;
-      quiz.completedAt = new Date();
-      await quiz.save();
-
-      // Analyze strengths and weaknesses using AI
-      let analysis;
-      try {
-        analysis = await this.analyzePerformance(
-          quiz.questions,
-          userAnswers,
-          finalScore
-        );
-      } catch (analysisError) {
-        console.error("AI analysis failed:", analysisError);
-        // Use basic analysis if AI fails
-        analysis = this.getBasicAnalysis(quiz.questions, userAnswers, finalScore);
-      }
-
-      await this.updateProgress(
-        quiz.bookId,
-        finalScore,
-        userId,
-        correctMCQs,
-        totalMCQs,
-        analysis
-      );
-
-      return {
-        score: finalScore,
-        results,
-        totalQuestions: quiz.questions.length,
-        correctAnswers: score,
-        analysis: analysis,
-      };
-    } catch (error) {
-      console.error("Quiz evaluation error:", error);
-      throw new Error("Failed to evaluate quiz");
+  try {
+    const quiz = await Quiz.findById(quizId);
+    if (!quiz) {
+      throw new Error("Quiz not found");
     }
-  }
 
-  async updateProgress(bookId, score, userId, correctMCQs, totalMCQs, analysis) {
+    let score = 0;
+    let correctMCQs = 0;
+    let totalMCQs = 0;
+    const results = [];
+
+    quiz.questions.forEach((question, index) => {
+      const userAnswer = userAnswers[index];
+      let isCorrect = false;
+
+      if (question.type === "mcq") {
+        totalMCQs++;
+        isCorrect = userAnswer === question.correctAnswer;
+        if (isCorrect) correctMCQs++;
+      } else {
+        isCorrect = userAnswer && userAnswer.trim().length > 0;
+      }
+
+      if (isCorrect) score++;
+
+      results.push({
+        question: question.question,
+        userAnswer,
+        correctAnswer: question.correctAnswer,
+        explanation: question.explanation,
+        isCorrect,
+        type: question.type,
+      });
+    });
+
+    const finalScore = (score / quiz.questions.length) * 100;
+
+    quiz.score = finalScore;
+    quiz.completedAt = new Date();
+    await quiz.save();
+
+    // Analyze strengths and weaknesses using AI - with fallback
+    let analysis;
+    try {
+      console.log("🤖 Starting AI analysis...");
+      analysis = await this.analyzePerformance(
+        quiz.questions,
+        userAnswers,
+        finalScore
+      );
+      console.log("✅ AI analysis completed successfully");
+    } catch (analysisError) {
+      console.error("AI analysis failed, using basic analysis:", analysisError);
+      analysis = this.getBasicAnalysis(quiz.questions, userAnswers, finalScore);
+    }
+
+    await this.updateProgress(
+      quiz.bookId,
+      finalScore,
+      userId,
+      correctMCQs,
+      totalMCQs,
+      analysis
+    );
+
+    return {
+      score: finalScore,
+      results,
+      totalQuestions: quiz.questions.length,
+      correctAnswers: score,
+      analysis: analysis,
+    };
+  } catch (error) {
+    console.error("Quiz evaluation error:", error);
+    throw new Error("Failed to evaluate quiz");
+  }
+}
+
+  async updateProgress(
+    bookId,
+    score,
+    userId,
+    correctMCQs,
+    totalMCQs,
+    analysis
+  ) {
     try {
       let progress = await Progress.findOne({ bookId, userId });
-      
+
       if (!progress) {
         progress = new Progress({ bookId, userId });
       }
@@ -243,26 +261,26 @@ CRITICAL: Return ONLY the JSON object, no additional text, no markdown formattin
 
       await progress.save();
     } catch (error) {
-      console.error('Progress update error:', error);
+      console.error("Progress update error:", error);
     }
   }
 
   async analyzePerformance(questions, userAnswers, score) {
-  try {
-    // Prepare data for AI analysis
-    const quizData = questions.map((question, index) => ({
-      question: question.question,
-      type: question.type,
-      correctAnswer: question.correctAnswer,
-      userAnswer: userAnswers[index],
-      isCorrect:
-        question.type === "mcq"
-          ? userAnswers[index] === question.correctAnswer
-          : userAnswers[index] && userAnswers[index].trim().length > 0,
-      explanation: question.explanation,
-    }));
+    try {
+      // Prepare data for AI analysis
+      const quizData = questions.map((question, index) => ({
+        question: question.question,
+        type: question.type,
+        correctAnswer: question.correctAnswer,
+        userAnswer: userAnswers[index],
+        isCorrect:
+          question.type === "mcq"
+            ? userAnswers[index] === question.correctAnswer
+            : userAnswers[index] && userAnswers[index].trim().length > 0,
+        explanation: question.explanation,
+      }));
 
-    const prompt = `
+      const prompt = `
 CRITICAL: You MUST return ONLY valid JSON format. Do not include any thinking process, explanations, or markdown.
 
 Analyze this quiz performance and provide insights about the student's strengths and weaknesses.
@@ -295,59 +313,232 @@ Return ONLY valid JSON in this exact format:
 IMPORTANT: No thinking process, no <think> tags, no additional text. ONLY the JSON object.
     `;
 
-    const analysisResponse = await aiService.generateContent(prompt);
-    
-    // Use the same robust parsing as generateQuiz
-    return this.parseAnalysisResponse(analysisResponse);
-  } catch (error) {
-    console.error("AI analysis failed:", error);
-    throw new Error("AI analysis service unavailable");
-  }
-}
+      const analysisResponse = await aiService.generateContent(prompt);
 
-parseAnalysisResponse(response) {
-  try {
-    console.log("🔧 Parsing AI analysis response...");
-    
-    // More robust cleaning
-    let cleanedResponse = response
-      .replace(/```json\s*/g, '')
-      .replace(/```\s*/g, '')
-      .replace(/^JSON:\s*/i, '')
-      .replace(/<think>[\s\S]*?<\/think>/g, '') // Remove <think> tags
-      .trim();
-
-    // Remove any thinking process or text before/after JSON
-    const jsonStartIndex = cleanedResponse.indexOf('{');
-    const jsonEndIndex = cleanedResponse.lastIndexOf('}') + 1;
-    
-    if (jsonStartIndex !== -1 && jsonEndIndex !== -1) {
-      cleanedResponse = cleanedResponse.substring(jsonStartIndex, jsonEndIndex);
-    } else {
-      throw new Error("No valid JSON structure found in AI response");
+      // Use the same robust parsing as generateQuiz
+      return this.parseAnalysisResponse(analysisResponse);
+    } catch (error) {
+      console.error("AI analysis failed:", error);
+      throw new Error("AI analysis service unavailable");
     }
+  }
 
-    console.log("Cleaned analysis response sample:", cleanedResponse.substring(0, 200) + "...");
+  parseAnalysisResponse(response) {
+    try {
+      console.log("🔧 Parsing AI analysis response...");
 
-    const analysisData = JSON.parse(cleanedResponse);
-    
-    // Validate the structure
-    const requiredFields = ['strengths', 'weaknesses', 'recommendations', 'keyInsights'];
-    for (const field of requiredFields) {
-      if (!analysisData[field] || !Array.isArray(analysisData[field])) {
-        throw new Error(`Invalid analysis structure: missing or invalid ${field} array`);
+      // More robust cleaning
+      let cleanedResponse = response
+        .replace(/```json\s*/g, "")
+        .replace(/```\s*/g, "")
+        .replace(/^JSON:\s*/i, "")
+        .replace(/<think>[\s\S]*?<\/think>/g, "")
+        .replace(/Thinking:[\s\S]*?(?={)/i, "")
+        .replace(/[\u0000-\u001F\u007F-\u009F]/g, "")
+        .trim();
+
+      console.log(
+        "🧹 After initial cleaning:",
+        cleanedResponse.substring(0, 100) + "..."
+      );
+
+      // Try to find JSON object
+      const jsonStartIndex = cleanedResponse.indexOf("{");
+      const jsonEndIndex = cleanedResponse.lastIndexOf("}") + 1;
+
+      if (jsonStartIndex !== -1 && jsonEndIndex > jsonStartIndex) {
+        cleanedResponse = cleanedResponse.substring(
+          jsonStartIndex,
+          jsonEndIndex
+        );
+        console.log(
+          "📦 Extracted JSON:",
+          cleanedResponse.substring(0, 100) + "..."
+        );
+      } else {
+        throw new Error("No valid JSON structure found in AI response");
       }
-    }
 
-    console.log(`✅ Parsed analysis with ${analysisData.strengths.length} strengths, ${analysisData.weaknesses.length} weaknesses`);
-    return analysisData;
-  } catch (error) {
-    console.error("❌ Failed to parse analysis response:", error.message);
-    console.log("Raw analysis response length:", response.length);
-    console.log("Raw analysis response sample:", response.substring(0, 500) + "...");
-    throw new Error(`AI returned invalid analysis format. Please try again. Error: ${error.message}`);
+      // Fix JSON issues
+      cleanedResponse = this.fixAnalysisJsonIssues(cleanedResponse);
+      console.log(
+        "🔧 After fixing:",
+        cleanedResponse.substring(0, 100) + "..."
+      );
+
+      const analysisData = JSON.parse(cleanedResponse);
+
+      // Validate structure
+      const requiredFields = [
+        "strengths",
+        "weaknesses",
+        "recommendations",
+        "keyInsights",
+      ];
+      for (const field of requiredFields) {
+        if (!analysisData[field] || !Array.isArray(analysisData[field])) {
+          throw new Error(
+            `Invalid analysis structure: missing or invalid ${field} array`
+          );
+        }
+      }
+
+      console.log(
+        `✅ Parsed analysis with ${analysisData.strengths.length} strengths`
+      );
+      return analysisData;
+    } catch (error) {
+      console.error("❌ Failed to parse analysis response:", error.message);
+      console.log("Raw response sample:", response.substring(0, 200) + "...");
+
+      // Try extraction as fallback
+      const extracted = this.tryExtractAnalysisJson(response);
+      if (extracted) {
+        console.log("✅ Recovered via extraction");
+        return extracted;
+      }
+
+      throw new Error(`AI returned invalid format: ${error.message}`);
+    }
   }
+
+  fixAnalysisJsonIssues(jsonString) {
+    let fixed = jsonString;
+
+    // Fix unquoted property names
+    fixed = fixed.replace(
+      /([{,]\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)(\s*:)/g,
+      '$1"$2"$3'
+    );
+
+    // Fix single quotes to double quotes
+    fixed = fixed.replace(/'/g, '"');
+
+    // Fix trailing commas
+    fixed = fixed.replace(/,\s*}/g, "}");
+    fixed = fixed.replace(/,\s*]/g, "]");
+
+    // Fix missing commas between objects in arrays
+    fixed = fixed.replace(/\}\s*\{/g, "},{");
+
+    // Fix unescaped quotes in strings - be more careful with this
+    // Only fix quotes that are likely to be unescaped in string values
+    fixed = fixed.replace(/(:\s*"([^"\\]|\\.)*")/g, (match) => {
+      return match.replace(/([^\\])"/g, '$1\\"');
+    });
+
+    // Fix missing commas in arrays
+    fixed = fixed.replace(/"\s*"/g, '","');
+
+    return fixed;
+  }
+
+  tryExtractAnalysisJson(response) {
+    try {
+      console.log("🔄 Attempting JSON extraction...");
+
+      // First, try to clean the response
+      let cleaned = response
+        .replace(/<think>[\s\S]*?<\/think>/g, "")
+        .replace(/Thinking:[\s\S]*?(?={)/i, "")
+        .replace(/```json\s*/g, "")
+        .replace(/```\s*/g, "")
+        .trim();
+
+      // Try to find JSON object
+      const jsonStart = cleaned.indexOf("{");
+      const jsonEnd = cleaned.lastIndexOf("}") + 1;
+
+      if (jsonStart !== -1 && jsonEnd > jsonStart) {
+        let extracted = cleaned.substring(jsonStart, jsonEnd);
+
+        // Fix common issues
+        extracted = this.fixAnalysisJsonIssues(extracted);
+
+        console.log("📦 Extracted JSON:", extracted.substring(0, 200) + "...");
+
+        const parsed = JSON.parse(extracted);
+
+        // Ensure all required fields
+        const defaultAnalysis = {
+          strengths: ["Basic understanding demonstrated"],
+          weaknesses: ["Need more practice with core concepts"],
+          recommendations: ["Review the material and try again"],
+          keyInsights: ["Keep practicing to improve your score"],
+        };
+
+        return {
+          ...defaultAnalysis,
+          ...parsed,
+        };
+      }
+
+      return null;
+    } catch (error) {
+      console.log("❌ Extraction failed:", error.message);
+      return null;
+    }
+  }
+
+  async analyzePerformance(questions, userAnswers, score) {
+    try {
+      // Prepare data for AI analysis
+      const quizData = questions.map((question, index) => ({
+        question: question.question,
+        type: question.type,
+        correctAnswer: question.correctAnswer,
+        userAnswer: userAnswers[index],
+        isCorrect:
+          question.type === "mcq"
+            ? userAnswers[index] === question.correctAnswer
+            : userAnswers[index] && userAnswers[index].trim().length > 0,
+        explanation: question.explanation,
+      }));
+
+      const prompt = `
+CRITICAL: You MUST return ONLY valid JSON format. Do not include any thinking process, explanations, or markdown.
+
+Analyze this quiz performance and provide insights about the student's strengths and weaknesses.
+
+QUIZ PERFORMANCE DATA:
+${JSON.stringify(quizData, null, 2)}
+
+OVERALL SCORE: ${score}%
+
+Return ONLY valid JSON in this exact format:
+{
+  "strengths": [
+    "Specific strength area 1",
+    "Specific strength area 2"
+  ],
+  "weaknesses": [
+    "Specific weakness area 1 with explanation",
+    "Specific weakness area 2 with explanation"
+  ],
+  "recommendations": [
+    "Specific study recommendation 1",
+    "Specific study recommendation 2"
+  ],
+  "keyInsights": [
+    "Key insight about learning patterns",
+    "Another key insight"
+  ]
 }
+
+IMPORTANT: No thinking process, no <think> tags, no additional text. ONLY the JSON object.
+    `;
+
+      const analysisResponse = await aiService.generateContent(prompt);
+
+      // Use the robust parsing method
+      return this.parseAnalysisResponse(analysisResponse);
+    } catch (error) {
+      console.error("AI analysis failed:", error);
+
+      // Return a basic analysis instead of throwing
+      return this.getBasicAnalysis(questions, userAnswers, score);
+    }
+  }
 
   getBasicAnalysis(questions, userAnswers, score) {
     // Basic analysis without AI
@@ -361,7 +552,9 @@ parseAnalysisResponse(response) {
       weakAreas.push("Multiple Choice Questions");
     }
 
-    const unansweredQuestions = userAnswers.filter(answer => !answer || answer.trim() === '').length;
+    const unansweredQuestions = userAnswers.filter(
+      (answer) => !answer || answer.trim() === ""
+    ).length;
     if (unansweredQuestions > 0) {
       weakAreas.push("Question completion");
     }
@@ -378,12 +571,16 @@ parseAnalysisResponse(response) {
       recommendations: [
         "Review incorrect answers carefully",
         "Practice more questions to improve accuracy",
-        "Focus on understanding the explanations"
+        "Focus on understanding the explanations",
       ],
       keyInsights: [
         `Scored ${score}% on this quiz`,
-        incorrectMCQs.length > 0 ? `Missed ${incorrectMCQs.length} multiple choice questions` : "All multiple choice questions correct",
-        unansweredQuestions > 0 ? `${unansweredQuestions} questions were not answered` : "All questions were attempted"
+        incorrectMCQs.length > 0
+          ? `Missed ${incorrectMCQs.length} multiple choice questions`
+          : "All multiple choice questions correct",
+        unansweredQuestions > 0
+          ? `${unansweredQuestions} questions were not answered`
+          : "All questions were attempted",
       ],
     };
   }
