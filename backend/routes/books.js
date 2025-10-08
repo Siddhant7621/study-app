@@ -47,21 +47,57 @@ router.delete('/:id', async (req, res) => {
 // Mark book as completed
 // In backend/routes/books.js
 // In backend/routes/books.js
-router.patch('/:id/complete', authMiddleware, async (req, res) => {
-  try {
-    // Simply add book to user's completed books
-    await User.findByIdAndUpdate(
-      req.user._id,
-      { $addToSet: { completedBooks: req.params.id } }
-    );
 
-    res.json({ 
-      message: 'Book marked as completed successfully'
+
+
+
+// Mark book as completed with feedback
+router.patch("/:id/complete", authMiddleware, async (req, res) => {
+  try {
+    const { feedback } = req.body;
+    const bookId = req.params.id;
+    const userId = req.user._id;
+
+    const book = await Book.findById(bookId);
+    
+    if (!book) {
+      return res.status(404).json({ error: "Book not found" });
+    }
+
+    // Add feedback if provided
+    if (feedback && feedback.trim()) {
+      await Book.findByIdAndUpdate(bookId, {
+        $push: {
+          feedbacks: {
+            user: userId,
+            feedback: feedback.trim()
+          }
+        }
+      });
+    }
+
+    // Update user's completed books
+    const user = await User.findByIdAndUpdate(
+      userId,
+      {
+        $addToSet: { completedBooks: bookId },
+      },
+      { new: true }
+    ).populate('completedBooks');
+
+    res.json({
+      success: true,
+      message: "Book marked as completed",
+      book: book,
+      user: {
+        completedBooks: user.completedBooks
+      }
     });
   } catch (error) {
-    console.error('Book completion error:', error);
-    res.status(500).json({ error: 'Failed to mark book as completed' });
+    console.error("Book completion error:", error);
+    res.status(500).json({ error: "Failed to mark book as completed" });
   }
 });
 
 export default router;
+

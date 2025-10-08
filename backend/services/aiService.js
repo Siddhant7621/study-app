@@ -30,7 +30,7 @@ class AIService {
       const response = await axios.post(
         `${this.baseURL}/chat/completions`,
         {
-          model: "tencent/hunyuan-a13b-instruct:free",
+          model: "qwen/qwen3-235b-a22b:free",
           messages: [
             { 
               role: "system", 

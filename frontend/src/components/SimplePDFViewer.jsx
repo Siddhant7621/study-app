@@ -1,174 +1,40 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-const SimplePDFViewer = ({ fileUrl, bookId, onBookCompleted }) => {
-  const [showCompletionModal, setShowCompletionModal] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [userFeedback, setUserFeedback] = useState("");
-
-  // SVG Icons
-  const OpenInNewIcon = () => (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-      />
-    </svg>
-  );
-
-  const DownloadIcon = () => (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-      />
-    </svg>
-  );
-
-  const DocumentIcon = () => (
-    <svg
-      className="w-12 h-12 text-gray-400"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-      />
-    </svg>
-  );
-
+// ✅ 1️⃣ Moved OUTSIDE main component
+const CompletionModal = ({
+  loading,
+  userFeedback,
+  setUserFeedback,
+  onCancel,
+  onConfirm,
+}) => {
   const CheckIcon = () => (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M5 13l4 4L19 7"
-      />
-    </svg>
-  );
-
-  const CloudIcon = () => (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"
-      />
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
     </svg>
   );
 
   const LoadingSpinner = () => (
-    <svg
-      className="animate-spin h-5 w-5 text-white"
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <circle
-        className="opacity-25"
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeWidth="4"
-      ></circle>
+    <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
       <path
         className="opacity-75"
         fill="currentColor"
-        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2
+          5.291A7.962 7.962 0 014 12H0
+          c0 3.042 1.135 5.824 3
+          7.938l3-2.647z"
       ></path>
     </svg>
   );
 
-  const handleDownload = () => {
-    const link = document.createElement("a");
-    link.href = fileUrl;
-    link.download = "document.pdf";
-    link.target = "_blank"; // Open in new tab for Cloudinary URLs
-    link.click();
-  };
-
-  const handleMarkCompleted = async () => {
-    if (!bookId) {
-      alert("Book ID is required to mark as completed");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      console.log("📚 Marking book as completed:", {
-        bookId: bookId,
-        userFeedback: userFeedback,
-        fullURL: `http://localhost:5001/api/books/${bookId}/complete`,
-      });
-
-      const response = await axios.patch(
-        `http://localhost:5001/api/books/${bookId}/complete`,
-        {
-          feedback: userFeedback,
-        }
-      );
-
-      console.log("✅ Book completion response:", response.data);
-
-      setShowCompletionModal(false);
-      setUserFeedback("");
-
-      // Call the callback if provided
-      if (onBookCompleted) {
-        onBookCompleted(response.data.book);
-      }
-
-      // Show success message
-      alert("🎉 Book marked as completed! Your progress has been updated.");
-    } catch (error) {
-      console.error("❌ Failed to mark book as completed:", {
-        error: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        bookId: bookId,
-      });
-      alert("Failed to mark book as completed. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const CompletionModal = () => (
+  return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
         <div className="text-center">
           <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
-            <CheckIcon className="h-6 w-6 text-green-600" />
+            <CheckIcon />
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
             Mark Book as Completed?
@@ -188,25 +54,27 @@ const SimplePDFViewer = ({ fileUrl, bookId, onBookCompleted }) => {
               onChange={(e) => setUserFeedback(e.target.value)}
               placeholder="Share what you learned from this book..."
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg
+                         focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
             />
           </div>
 
           <div className="flex gap-3 justify-center">
             <button
-              onClick={() => {
-                setShowCompletionModal(false);
-                setUserFeedback("");
-              }}
+              onClick={onCancel}
               disabled={loading}
-              className="px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors duration-200"
+              className="px-4 py-2 border border-gray-300 text-gray-700
+                         font-medium rounded-lg hover:bg-gray-50 disabled:opacity-50
+                         transition-colors duration-200"
             >
               Cancel
             </button>
             <button
-              onClick={handleMarkCompleted}
+              onClick={onConfirm}
               disabled={loading}
-              className="inline-flex items-center px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors duration-200"
+              className="inline-flex items-center px-4 py-2 bg-green-600 text-white
+                         font-medium rounded-lg hover:bg-green-700 disabled:opacity-50
+                         transition-colors duration-200"
             >
               {loading ? (
                 <>
@@ -225,27 +93,146 @@ const SimplePDFViewer = ({ fileUrl, bookId, onBookCompleted }) => {
       </div>
     </div>
   );
+};
+
+// ✅ 2️⃣ Main Component (Unchanged Layout)
+const SimplePDFViewer = ({ fileUrl, bookId, onBookCompleted }) => {
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [userFeedback, setUserFeedback] = useState("");
+
+  // Icons
+  const OpenInNewIcon = () => (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+        d="M10 6H6a2 2 0 00-2 2v10a2
+           2 0 002 2h10a2 2 0 002-2v-4M14
+           4h6m0 0v6m0-6L10 14" />
+    </svg>
+  );
+
+  const DownloadIcon = () => (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+        d="M12 10v6m0 0l-3-3m3 3l3-3m2
+           8H7a2 2 0 01-2-2V5a2 2 0
+           012-2h5.586a1 1 0
+           01.707.293l5.414
+           5.414a1 1 0
+           01.293.707V19a2
+           2 0 01-2 2z" />
+    </svg>
+  );
+
+  const DocumentIcon = () => (
+    <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+        d="M9 12h6m-6 4h6m2
+           5H7a2 2 0 01-2-2V5a2
+           2 0 012-2h5.586a1 1 0
+           01.707.293l5.414
+           5.414a1 1 0
+           01.293.707V19a2
+           2 0 01-2 2z" />
+    </svg>
+  );
+
+  const CheckIcon = () => (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+        d="M5 13l4 4L19 7" />
+    </svg>
+  );
+
+  const CloudIcon = () => (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+        d="M3 15a4 4 0 004 4h9a5
+           5 0 10-.1-9.999 5.002
+           5.002 0 10-9.78
+           2.096A4.001 4.001
+           0 003 15z" />
+    </svg>
+  );
+
+  const LoadingSpinner = () => (
+    <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+      <path className="opacity-75" fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373
+           0 0 5.373 0 12h4zm2
+           5.291A7.962 7.962 0
+           014 12H0c0 3.042
+           1.135 5.824 3
+           7.938l3-2.647z"></path>
+    </svg>
+  );
+
+  const handleDownload = () => {
+    const link = document.createElement("a");
+    link.href = fileUrl;
+    link.download = "document.pdf";
+    link.target = "_blank";
+    link.click();
+  };
+
+  const handleMarkCompleted = async () => {
+    if (!bookId) {
+      alert("Book ID is required to mark as completed");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      console.log("📚 Marking book as completed:", {
+        bookId,
+        userFeedback,
+        fullURL: `http://localhost:5001/api/books/${bookId}/complete`,
+      });
+
+      const response = await axios.patch(
+        `http://localhost:5001/api/books/${bookId}/complete`,
+        { feedback: userFeedback }
+      );
+
+      console.log("✅ Book completion response:", response.data);
+
+      setShowCompletionModal(false);
+      setUserFeedback("");
+
+      if (onBookCompleted) onBookCompleted(response.data.book);
+
+      alert("🎉 Book marked as completed! Your progress has been updated.");
+    } catch (error) {
+      console.error("❌ Failed to mark book as completed:", {
+        error: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        bookId,
+      });
+      alert("Failed to mark book as completed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (!fileUrl) {
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
         <DocumentIcon />
-        <h3 className="text-lg font-medium text-gray-900 mt-4">
-          No PDF selected
-        </h3>
+        <h3 className="text-lg font-medium text-gray-900 mt-4">No PDF selected</h3>
         <p className="text-gray-500 mt-1">Please select a PDF to view</p>
       </div>
     );
   }
 
-  // Check if it's a Cloudinary URL
-  const isCloudinaryUrl = fileUrl.includes('cloudinary.com');
-  const isLocalUrl = fileUrl.includes('localhost:5001/uploads');
+  const isCloudinaryUrl = fileUrl.includes("cloudinary.com");
+  const isLocalUrl = fileUrl.includes("localhost:5001/uploads");
 
   return (
     <>
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        {/* Header with Actions */}
+        {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <div>
             <h2 className="text-xl font-semibold text-gray-900">PDF Viewer</h2>
@@ -261,19 +248,16 @@ const SimplePDFViewer = ({ fileUrl, bookId, onBookCompleted }) => {
             </p>
           </div>
           <div className="flex gap-2">
-            {/* Cloudinary Status Badge */}
             {isCloudinaryUrl && (
               <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                 <CloudIcon className="w-3 h-3 mr-1" />
                 Cloudinary
               </span>
             )}
-            
-            {/* Mark Completed Button */}
             {bookId && (
               <button
                 onClick={() => setShowCompletionModal(true)}
-                className="inline-flex items-center px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200"
+                className="inline-flex items-center px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors duration-200"
               >
                 <CheckIcon />
                 <span className="ml-2">Mark Completed</span>
@@ -281,14 +265,14 @@ const SimplePDFViewer = ({ fileUrl, bookId, onBookCompleted }) => {
             )}
             <button
               onClick={() => window.open(fileUrl, "_blank")}
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
             >
               <OpenInNewIcon />
               <span className="ml-2">Open in New Tab</span>
             </button>
             <button
               onClick={handleDownload}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+              className="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200"
             >
               <DownloadIcon />
               <span className="ml-2">Download</span>
@@ -296,22 +280,15 @@ const SimplePDFViewer = ({ fileUrl, bookId, onBookCompleted }) => {
           </div>
         </div>
 
-        {/* Info Alert */}
+        {/* Info */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
           <div className="flex">
             <div className="flex-shrink-0">
-              <svg
-                className="h-5 w-5 text-blue-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
+              <svg className="h-5 w-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21
+                     12a9 9 0 11-18 0 9 9 0 0118
+                     0z" />
               </svg>
             </div>
             <div className="ml-3">
@@ -320,13 +297,9 @@ const SimplePDFViewer = ({ fileUrl, bookId, onBookCompleted }) => {
               </h3>
               <div className="mt-1 text-sm text-blue-700">
                 {isCloudinaryUrl ? (
-                  <p>
-                    Your PDF is being delivered via Cloudinary's global CDN for faster loading and better performance.
-                  </p>
+                  <p>Your PDF is being delivered via Cloudinary's global CDN for faster loading.</p>
                 ) : (
-                  <p>
-                    Your browser's PDF viewer provides the best experience with full features including:
-                  </p>
+                  <p>Your browser's PDF viewer provides the best experience:</p>
                 )}
                 <ul className="list-disc list-inside mt-1 space-y-1">
                   {isCloudinaryUrl ? (
@@ -350,7 +323,7 @@ const SimplePDFViewer = ({ fileUrl, bookId, onBookCompleted }) => {
           </div>
         </div>
 
-        {/* PDF Viewer */}
+        {/* PDF */}
         <div className="border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
           <iframe
             src={fileUrl}
@@ -362,7 +335,7 @@ const SimplePDFViewer = ({ fileUrl, bookId, onBookCompleted }) => {
           />
         </div>
 
-        {/* Quick Actions Footer */}
+        {/* Footer */}
         <div className="mt-4 flex justify-between items-center text-sm text-gray-500">
           <div className="flex items-center space-x-4">
             <span>📄 PDF Document</span>
@@ -387,8 +360,19 @@ const SimplePDFViewer = ({ fileUrl, bookId, onBookCompleted }) => {
         </div>
       </div>
 
-      {/* Completion Modal */}
-      {showCompletionModal && <CompletionModal />}
+      {/* ✅ Fixed Modal */}
+      {showCompletionModal && (
+        <CompletionModal
+          loading={loading}
+          userFeedback={userFeedback}
+          setUserFeedback={setUserFeedback}
+          onCancel={() => {
+            setShowCompletionModal(false);
+            setUserFeedback("");
+          }}
+          onConfirm={handleMarkCompleted}
+        />
+      )}
     </>
   );
 };
