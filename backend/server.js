@@ -87,6 +87,7 @@ import quizRoutes from './routes/quiz.js';
 import chatRoutes from './routes/chat.js';
 import youtubeRoutes from './routes/youtube.js';
 import authRoutes from './routes/auth.js';
+import progressRoutes from './routes/progress.js';
 
 // Routes
 app.use('/api/upload', uploadRoutes);
@@ -95,6 +96,7 @@ app.use('/api/quiz', quizRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/youtube', youtubeRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/progress', progressRoutes);
 
 
 // Health check route

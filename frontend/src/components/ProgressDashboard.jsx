@@ -2,10 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const ProgressDashboard = () => {
-  const [books, setBooks] = useState([]);
-  const [userProgress, setUserProgress] = useState({});
+  const [progressData, setProgressData] = useState(null);
   const [loading, setLoading] = useState(true);
-   const [expandedBook, setExpandedBook] = useState(null);
+  const [expandedBook, setExpandedBook] = useState(null);
 
   useEffect(() => {
     fetchProgressData();
@@ -13,16 +12,13 @@ const ProgressDashboard = () => {
 
   const fetchProgressData = async () => {
     try {
-      // Fetch user's books
-      const booksResponse = await axios.get('http://localhost:5001/api/books');
-      const userBooks = booksResponse.data;
-      
-      // Fetch user's progress data
-      const progressResponse = await axios.get('http://localhost:5001/api/progress/user');
-      const progressData = progressResponse.data;
-      
-      setBooks(userBooks);
-      setUserProgress(progressData);
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      const response = await axios.get('http://localhost:5001/api/progress', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      setProgressData(response.data);
     } catch (error) {
       console.error('Failed to fetch progress:', error);
     } finally {
@@ -32,32 +28,17 @@ const ProgressDashboard = () => {
 
   const markBookAsCompleted = async (bookId) => {
     try {
-      await axios.patch(`http://localhost:5001/api/books/${bookId}/complete`);
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      await axios.patch(`http://localhost:5001/api/books/${bookId}/complete`, {}, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       fetchProgressData(); // Refresh data
     } catch (error) {
       console.error('Failed to mark book as completed:', error);
     }
   };
-
-  // Calculate overall statistics
-  const calculateStats = () => {
-    const completedBooks = books.filter(book => book.completed).length;
-    const totalQuizzes = Object.values(userProgress).reduce((sum, progress) => sum + (progress.quizzesTaken || 0), 0);
-    const totalCorrectMCQs = Object.values(userProgress).reduce((sum, progress) => sum + (progress.correctMCQs || 0), 0);
-    const totalMCQs = Object.values(userProgress).reduce((sum, progress) => sum + (progress.totalMCQs || 0), 0);
-    
-    const mcqAccuracy = totalMCQs > 0 ? Math.round((totalCorrectMCQs / totalMCQs) * 100) : 0;
-
-    return {
-      completedBooks,
-      totalQuizzes,
-      totalCorrectMCQs,
-      totalMCQs,
-      mcqAccuracy
-    };
-  };
-
-  const stats = calculateStats();
 
   // SVG Icons
   const BookIcon = () => (
@@ -94,159 +75,145 @@ const ProgressDashboard = () => {
     );
   }
 
+  if (!progressData) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center">
+        <p className="text-gray-600">Failed to load progress data.</p>
+      </div>
+    );
+  }
+
+  const { userStats, quizPerformance, learningInsights, detailedProgress } = progressData;
+
   return (
     <div className="space-y-6">
       {/* Overview Stats */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">Learning Overview</h2>
-
-         {/* AI-Powered Insights Section */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">
-          📊 AI Learning Analysis
-        </h3>
-        
-        {books.filter(book => userProgress[book._id]?.strengths).length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <div className="text-4xl mb-3">🤖</div>
-            <p>Complete some quizzes to get AI-powered insights about your learning!</p>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {books.map((book) => {
-              const progress = userProgress[book._id] || {};
-              if (!progress.strengths || progress.strengths.length === 0) return null;
-
-              return (
-                <div key={book._id} className="border border-gray-200 rounded-lg p-4">
-                  <div 
-                    className="flex items-center justify-between cursor-pointer"
-                    onClick={() => setExpandedBook(expandedBook === book._id ? null : book._id)}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="text-2xl">📚</div>
-                      <div>
-                        <h4 className="font-semibold text-gray-900">{book.title}</h4>
-                        <p className="text-sm text-gray-500">
-                          Last analyzed: {new Date(progress.lastAnalysis).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-gray-400">
-                      {expandedBook === book._id ? '▼' : '▶'}
-                    </div>
-                  </div>
-
-                  {expandedBook === book._id && (
-                    <div className="mt-4 space-y-4 animate-fadeIn">
-                      {/* Strengths */}
-                      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                        <h5 className="font-semibold text-green-800 mb-2 flex items-center">
-                          <span className="text-lg mr-2">✅</span>
-                          Your Strengths
-                        </h5>
-                        <ul className="space-y-1">
-                          {progress.strengths?.map((strength, index) => (
-                            <li key={index} className="text-green-700 text-sm">
-                              • {strength}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-
-                      {/* Areas to Improve */}
-                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                        <h5 className="font-semibold text-yellow-800 mb-2 flex items-center">
-                          <span className="text-lg mr-2">💡</span>
-                          Areas to Improve
-                        </h5>
-                        <ul className="space-y-1">
-                          {progress.weaknesses?.map((weakness, index) => (
-                            <li key={index} className="text-yellow-700 text-sm">
-                              • {weakness}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-
-                      {/* Recommendations */}
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <h5 className="font-semibold text-blue-800 mb-2 flex items-center">
-                          <span className="text-lg mr-2">🎯</span>
-                          Study Recommendations
-                        </h5>
-                        <ul className="space-y-1">
-                          {progress.recommendations?.map((rec, index) => (
-                            <li key={index} className="text-blue-700 text-sm">
-                              • {rec}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Books Uploaded */}
           <div className="bg-blue-50 rounded-lg p-4 text-center">
             <BookIcon className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-blue-600">{books.length}</p>
+            <p className="text-2xl font-bold text-blue-600">{userStats.totalUploadedBooks}</p>
             <p className="text-sm text-blue-600">Books Uploaded</p>
           </div>
 
           {/* Books Completed */}
           <div className="bg-green-50 rounded-lg p-4 text-center">
             <CheckIcon className="w-8 h-8 text-green-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-green-600">{stats.completedBooks}</p>
+            <p className="text-2xl font-bold text-green-600">{userStats.totalCompletedBooks}</p>
             <p className="text-sm text-green-600">Books Completed</p>
           </div>
 
           {/* Quizzes Taken */}
           <div className="bg-purple-50 rounded-lg p-4 text-center">
             <QuizIcon className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-purple-600">{stats.totalQuizzes}</p>
+            <p className="text-2xl font-bold text-purple-600">{quizPerformance.totalQuizzes}</p>
             <p className="text-sm text-purple-600">Quizzes Taken</p>
           </div>
 
           {/* MCQ Accuracy */}
           <div className="bg-orange-50 rounded-lg p-4 text-center">
             <div className="w-8 h-8 text-orange-600 mx-auto mb-2 font-bold text-lg">
-              {stats.mcqAccuracy}%
+              {quizPerformance.correctMCQsPercentage}%
             </div>
-            <p className="text-2xl font-bold text-orange-600">{stats.totalCorrectMCQs}/{stats.totalMCQs}</p>
+            <p className="text-2xl font-bold text-orange-600">
+              {quizPerformance.correctMCQs}/{quizPerformance.totalMCQsAttempted}
+            </p>
             <p className="text-sm text-orange-600">MCQ Accuracy</p>
           </div>
         </div>
       </div>
 
-      {/* Books Progress */}
+      {/* AI-Powered Insights Section */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">Your Books Progress</h3>
+        <h3 className="text-xl font-bold text-gray-900 mb-4">
+          📊 AI Learning Analysis
+        </h3>
         
-        {books.length === 0 ? (
+        {learningInsights.strengths.length === 0 && learningInsights.weaknesses.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
-            <BookIcon className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-            <p>No books uploaded yet. Upload your first book to start learning!</p>
+            <div className="text-4xl mb-3">🤖</div>
+            <p>Complete some quizzes to get AI-powered insights about your learning!</p>
           </div>
         ) : (
           <div className="space-y-4">
-            {books.map((book) => {
-              const progress = userProgress[book._id] || {};
-              const mcqAccuracy = progress.totalMCQs > 0 
-                ? Math.round((progress.correctMCQs || 0) / progress.totalMCQs * 100) 
-                : 0;
+            {/* Strengths */}
+            {learningInsights.strengths.length > 0 && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <h5 className="font-semibold text-green-800 mb-2 flex items-center">
+                  <span className="text-lg mr-2">✅</span>
+                  Your Strengths
+                </h5>
+                <ul className="space-y-1">
+                  {learningInsights.strengths.map((strength, index) => (
+                    <li key={index} className="text-green-700 text-sm">
+                      • {strength}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
+            {/* Areas to Improve */}
+            {learningInsights.weaknesses.length > 0 && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <h5 className="font-semibold text-yellow-800 mb-2 flex items-center">
+                  <span className="text-lg mr-2">💡</span>
+                  Areas to Improve
+                </h5>
+                <ul className="space-y-1">
+                  {learningInsights.weaknesses.map((weakness, index) => (
+                    <li key={index} className="text-yellow-700 text-sm">
+                      • {weakness}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Recommendations */}
+            {learningInsights.recommendations.length > 0 && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h5 className="font-semibold text-blue-800 mb-2 flex items-center">
+                  <span className="text-lg mr-2">🎯</span>
+                  Study Recommendations
+                </h5>
+                <ul className="space-y-1">
+                  {learningInsights.recommendations.map((rec, index) => (
+                    <li key={index} className="text-blue-700 text-sm">
+                      • {rec}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Detailed Book Progress */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 className="text-xl font-bold text-gray-900 mb-4">Detailed Book Progress</h3>
+        
+        {detailedProgress.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <BookIcon className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+            <p>No quiz progress yet. Take some quizzes to see your progress!</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {detailedProgress.map((bookProgress) => {
+              const isCompleted = userStats.completedBooks.some(
+                book => book.id === bookProgress.bookId
+              );
+              
               return (
                 <div
-                  key={book._id}
+                  key={bookProgress.bookId}
                   className={`border rounded-lg p-4 transition-all duration-200 ${
-                    book.completed 
+                    isCompleted 
                       ? 'bg-green-50 border-green-200' 
                       : 'bg-white border-gray-200 hover:shadow-md'
                   }`}
@@ -254,55 +221,89 @@ const ProgressDashboard = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <BookIcon className={`w-5 h-5 ${
-                        book.completed ? 'text-green-600' : 'text-gray-400'
+                        isCompleted ? 'text-green-600' : 'text-gray-400'
                       }`} />
                       <div>
-                        <h4 className="font-semibold text-gray-900">{book.title}</h4>
+                        <h4 className="font-semibold text-gray-900">{bookProgress.bookTitle}</h4>
                         <p className="text-sm text-gray-500">
-                          {progress.quizzesTaken || 0} quizzes taken • {mcqAccuracy}% MCQ accuracy
+                          {bookProgress.totalQuizzes} quizzes taken • {bookProgress.averageScore}% average score
                         </p>
                       </div>
                     </div>
 
                     <div className="flex items-center space-x-3">
                       {/* MCQ Progress */}
-                      {progress.totalMCQs > 0 && (
+                      {bookProgress.mcqStats.total > 0 && (
                         <div className="text-sm text-gray-600">
-                          <span className="font-medium">{progress.correctMCQs || 0}/{progress.totalMCQs}</span> MCQs correct
+                          <span className="font-medium">
+                            {bookProgress.mcqStats.correct}/{bookProgress.mcqStats.total}
+                          </span> MCQs correct
                         </div>
                       )}
 
                       {/* Complete Checkbox */}
                       <button
-                        onClick={() => markBookAsCompleted(book._id)}
+                        onClick={() => markBookAsCompleted(bookProgress.bookId)}
                         className={`flex items-center space-x-2 px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                          book.completed
+                          isCompleted
                             ? 'bg-green-100 text-green-800 border border-green-200'
                             : 'bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200'
                         }`}
                       >
                         <CheckIcon className="w-4 h-4" />
-                        <span>{book.completed ? 'Completed' : 'Mark Complete'}</span>
+                        <span>{isCompleted ? 'Completed' : 'Mark Complete'}</span>
                       </button>
                     </div>
                   </div>
 
                   {/* Progress Bar for MCQ Accuracy */}
-                  {progress.totalMCQs > 0 && (
+                  {bookProgress.mcqStats.total > 0 && (
                     <div className="mt-3">
                       <div className="flex justify-between text-xs text-gray-500 mb-1">
                         <span>MCQ Performance</span>
-                        <span>{mcqAccuracy}%</span>
+                        <span>{bookProgress.mcqStats.percentage}%</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
                           className={`h-2 rounded-full transition-all duration-300 ${
-                            mcqAccuracy >= 80 ? 'bg-green-500' :
-                            mcqAccuracy >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                            bookProgress.mcqStats.percentage >= 80 ? 'bg-green-500' :
+                            bookProgress.mcqStats.percentage >= 60 ? 'bg-yellow-500' : 'bg-red-500'
                           }`}
-                          style={{ width: `${mcqAccuracy}%` }}
+                          style={{ width: `${bookProgress.mcqStats.percentage}%` }}
                         ></div>
                       </div>
+                    </div>
+                  )}
+
+                  {/* Book-specific insights */}
+                  {(bookProgress.strengths.length > 0 || bookProgress.weaknesses.length > 0) && (
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <div 
+                        className="flex items-center justify-between cursor-pointer"
+                        onClick={() => setExpandedBook(expandedBook === bookProgress.bookId ? null : bookProgress.bookId)}
+                      >
+                        <h5 className="font-medium text-gray-700">Book Insights</h5>
+                        <div className="text-gray-400">
+                          {expandedBook === bookProgress.bookId ? '▼' : '▶'}
+                        </div>
+                      </div>
+
+                      {expandedBook === bookProgress.bookId && (
+                        <div className="mt-2 space-y-2 animate-fadeIn">
+                          {bookProgress.strengths.length > 0 && (
+                            <div className="text-sm text-green-600">
+                              <span className="font-medium">Strengths: </span>
+                              {bookProgress.strengths.join(', ')}
+                            </div>
+                          )}
+                          {bookProgress.weaknesses.length > 0 && (
+                            <div className="text-sm text-yellow-600">
+                              <span className="font-medium">Areas to improve: </span>
+                              {bookProgress.weaknesses.join(', ')}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -313,32 +314,25 @@ const ProgressDashboard = () => {
       </div>
 
       {/* Simple Graph - MCQ Performance */}
-      {stats.totalMCQs > 0 && (
+      {detailedProgress.length > 0 && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">MCQ Performance Overview</h3>
+          <h3 className="text-xl font-bold text-gray-900 mb-4">MCQ Performance by Book</h3>
           <div className="flex items-end justify-between h-32 space-x-2">
-            {books.map((book, index) => {
-              const progress = userProgress[book._id] || {};
-              const mcqAccuracy = progress.totalMCQs > 0 
-                ? Math.round((progress.correctMCQs || 0) / progress.totalMCQs * 100) 
-                : 0;
-              
-              return (
-                <div key={book._id} className="flex-1 flex flex-col items-center">
-                  <div 
-                    className={`w-full max-w-16 transition-all duration-500 ${
-                      mcqAccuracy >= 80 ? 'bg-green-500' :
-                      mcqAccuracy >= 60 ? 'bg-yellow-500' : 'bg-red-500'
-                    } rounded-t`}
-                    style={{ height: `${mcqAccuracy}%` }}
-                  ></div>
-                  <p className="text-xs text-gray-500 mt-2 text-center truncate w-full">
-                    {book.title.split(' ')[0]}
-                  </p>
-                  <p className="text-xs font-medium text-gray-700">{mcqAccuracy}%</p>
-                </div>
-              );
-            })}
+            {detailedProgress.map((bookProgress, index) => (
+              <div key={bookProgress.bookId} className="flex-1 flex flex-col items-center">
+                <div 
+                  className={`w-full max-w-16 transition-all duration-500 ${
+                    bookProgress.mcqStats.percentage >= 80 ? 'bg-green-500' :
+                    bookProgress.mcqStats.percentage >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                  } rounded-t`}
+                  style={{ height: `${bookProgress.mcqStats.percentage || 5}%` }}
+                ></div>
+                <p className="text-xs text-gray-500 mt-2 text-center truncate w-full">
+                  {bookProgress.bookTitle.split(' ')[0]}
+                </p>
+                <p className="text-xs font-medium text-gray-700">{bookProgress.mcqStats.percentage}%</p>
+              </div>
+            ))}
           </div>
         </div>
       )}
