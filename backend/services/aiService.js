@@ -4,15 +4,14 @@ import axios from 'axios';
 
 class AIService {
   constructor() {
-    this.apiKey = process.env.OPENROUTER_API_KEY;
-    this.baseURL = 'https://openrouter.ai/api/v1';
+    this.apiKey = process.env.PERPLEXITY_API_KEY;
+    this.baseURL = 'https://api.perplexity.ai';
     this.lastRequestTime = 0;
-    this.minRequestInterval = 2000; // 2 seconds between requests
-    console.log('✅ OpenRouter AI service initialized');
+    this.minRequestInterval = 2000;
+    console.log('✅ Perplexity AI service initialized');
   }
 
   async generateContent(prompt) {
-    // Rate limiting: wait if we're making requests too fast
     const now = Date.now();
     const timeSinceLastRequest = now - this.lastRequestTime;
     
@@ -25,16 +24,22 @@ class AIService {
     this.lastRequestTime = Date.now();
 
     try {
-      console.log('🤖 Sending to OpenRouter...');
+      console.log('🤖 Sending to Perplexity...');
       
       const response = await axios.post(
         `${this.baseURL}/chat/completions`,
         {
-          model: "qwen/qwen3-235b-a22b:free",
+          // CORRECT Perplexity models:
+          model: "sonar-pro", // ✅ Correct model name
+          // Other available models:
+          // "sonar-small-chat" - without web search
+          // "sonar-medium-online" - with web search (more capable)
+          // "sonar-medium-chat" - without web search
+          // "sonar-reasoning-online" - for complex reasoning
           messages: [
             { 
               role: "system", 
-              content: "You are an educational assistant. For quiz generation, return ONLY valid JSON format." 
+              content: "You are an educational assistant specializing in creating quizzes and learning materials. Always return valid JSON format when requested. Be accurate and educational." 
             },
             { role: "user", content: prompt },
           ],
@@ -45,14 +50,11 @@ class AIService {
           headers: {
             'Authorization': `Bearer ${this.apiKey}`,
             'Content-Type': 'application/json',
-            'HTTP-Referer': 'http://localhost:3000',
-            'X-Title': 'Study Assistant App'
           },
-          timeout: 45000 // Increased timeout to 45 seconds
+          timeout: 45000
         }
       );
 
-      // Check if response structure is valid
       if (!response.data || !response.data.choices || !response.data.choices[0] || !response.data.choices[0].message) {
         throw new Error('Invalid response structure from AI service');
       }
@@ -63,11 +65,11 @@ class AIService {
         throw new Error('Empty response from AI service');
       }
 
-      console.log('✅ OpenRouter response received');
+      console.log('✅ Perplexity response received');
       return result;
       
     } catch (error) {
-      console.error('❌ OpenRouter error details:', {
+      console.error('❌ Perplexity API error details:', {
         message: error.message,
         status: error.response?.status,
         data: error.response?.data,
@@ -76,10 +78,16 @@ class AIService {
       
       let errorMessage = 'AI service failed';
       
-      if (error.response?.status === 429) {
+      if (error.response?.status === 400) {
+        if (error.response?.data?.error?.type === 'invalid_model') {
+          errorMessage = 'Invalid AI model configuration. Please contact support.';
+        } else {
+          errorMessage = 'Bad request to AI service. Please check your input.';
+        }
+      } else if (error.response?.status === 429) {
         errorMessage = 'AI service rate limit exceeded. Please try again in a few moments.';
       } else if (error.response?.status === 401) {
-        errorMessage = 'AI service authentication failed. Please check API configuration.';
+        errorMessage = 'Perplexity API key invalid or missing. Please check your API configuration.';
       } else if (error.code === 'ECONNABORTED') {
         errorMessage = 'AI service request timeout. Please try again.';
       } else if (error.response?.status >= 500) {

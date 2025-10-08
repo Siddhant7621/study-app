@@ -107,6 +107,8 @@ CRITICAL: Return ONLY the JSON object, no additional text, no markdown formattin
   parseQuizResponse(response) {
     try {
       console.log("🔧 Parsing AI response...");
+      console.log(response);
+      
 
       // More robust cleaning
       let cleanedResponse = response
@@ -324,83 +326,131 @@ IMPORTANT: No thinking process, no <think> tags, no additional text. ONLY the JS
   }
 
   parseAnalysisResponse(response) {
-    try {
-      console.log("🔧 Parsing AI analysis response...");
-
-      // More robust cleaning
-      let cleanedResponse = response
-        .replace(/```json\s*/g, "")
-        .replace(/```\s*/g, "")
-        .replace(/^JSON:\s*/i, "")
-        .replace(/<think>[\s\S]*?<\/think>/g, "")
-        .replace(/Thinking:[\s\S]*?(?={)/i, "")
-        .replace(/[\u0000-\u001F\u007F-\u009F]/g, "")
-        .trim();
-
-      console.log(
-        "🧹 After initial cleaning:",
-        cleanedResponse.substring(0, 100) + "..."
-      );
-
-      // Try to find JSON object
-      const jsonStartIndex = cleanedResponse.indexOf("{");
-      const jsonEndIndex = cleanedResponse.lastIndexOf("}") + 1;
-
-      if (jsonStartIndex !== -1 && jsonEndIndex > jsonStartIndex) {
-        cleanedResponse = cleanedResponse.substring(
-          jsonStartIndex,
-          jsonEndIndex
-        );
-        console.log(
-          "📦 Extracted JSON:",
-          cleanedResponse.substring(0, 100) + "..."
-        );
-      } else {
-        throw new Error("No valid JSON structure found in AI response");
-      }
-
-      // Fix JSON issues
-      cleanedResponse = this.fixAnalysisJsonIssues(cleanedResponse);
-      console.log(
-        "🔧 After fixing:",
-        cleanedResponse.substring(0, 100) + "..."
-      );
-
-      const analysisData = JSON.parse(cleanedResponse);
-
-      // Validate structure
-      const requiredFields = [
-        "strengths",
-        "weaknesses",
-        "recommendations",
-        "keyInsights",
-      ];
-      for (const field of requiredFields) {
-        if (!analysisData[field] || !Array.isArray(analysisData[field])) {
-          throw new Error(
-            `Invalid analysis structure: missing or invalid ${field} array`
-          );
-        }
-      }
-
-      console.log(
-        `✅ Parsed analysis with ${analysisData.strengths.length} strengths`
-      );
-      return analysisData;
-    } catch (error) {
-      console.error("❌ Failed to parse analysis response:", error.message);
-      console.log("Raw response sample:", response.substring(0, 200) + "...");
-
-      // Try extraction as fallback
-      const extracted = this.tryExtractAnalysisJson(response);
-      if (extracted) {
-        console.log("✅ Recovered via extraction");
-        return extracted;
-      }
-
-      throw new Error(`AI returned invalid format: ${error.message}`);
+  try {
+    console.log("🔧 Parsing AI analysis response...");
+    
+    // SIMPLE cleaning - don't overcomplicate it
+    let cleanedResponse = response.trim();
+    
+    // Remove markdown code blocks if present
+    if (cleanedResponse.startsWith('```json')) {
+      cleanedResponse = cleanedResponse.replace(/```json\s*/, '').replace(/\s*```/, '');
+    } else if (cleanedResponse.startsWith('```')) {
+      cleanedResponse = cleanedResponse.replace(/```\s*/, '').replace(/\s*```/, '');
     }
+    
+    // Remove any "JSON:" prefix
+    cleanedResponse = cleanedResponse.replace(/^JSON:\s*/i, '');
+    
+    console.log("🧹 After cleaning:", cleanedResponse.substring(0, 150) + "...");
+
+    // Try direct parse first (it might already be valid JSON)
+    try {
+      const analysisData = JSON.parse(cleanedResponse);
+      console.log("✅ Direct parse successful");
+      return this.validateAnalysisStructure(analysisData);
+    } catch (directError) {
+      console.log("🔄 Direct parse failed, trying extraction...");
+    }
+
+    // Extract JSON using a simpler approach
+    const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        const extracted = jsonMatch[0];
+        console.log("📦 Extracted JSON:", extracted.substring(0, 150) + "...");
+        
+        const analysisData = JSON.parse(extracted);
+        console.log("✅ Extraction parse successful");
+        return this.validateAnalysisStructure(analysisData);
+      } catch (extractError) {
+        console.log("❌ Extraction parse failed:", extractError.message);
+      }
+    }
+
+    // If both methods fail, try manual repair
+    console.log("🛠️ Attempting manual JSON repair...");
+    const repaired = this.simpleJsonRepair(cleanedResponse);
+    if (repaired) {
+      console.log("✅ Manual repair successful");
+      return repaired;
+    }
+
+    throw new Error("All parsing methods failed");
+    
+  } catch (error) {
+    console.error("❌ Failed to parse analysis response:", error.message);
+    console.log("Raw response sample:", response.substring(0, 300));
+    
+    // Return basic analysis instead of throwing
+    return this.getBasicAnalysis([], [], 0);
   }
+}
+
+// Add these helper methods:
+
+validateAnalysisStructure(analysisData) {
+  // Ensure all required fields exist and are arrays
+  const defaultAnalysis = {
+    strengths: [],
+    weaknesses: [],
+    recommendations: [],
+    keyInsights: []
+  };
+
+  const result = { ...defaultAnalysis, ...analysisData };
+  
+  // Convert to arrays if needed
+  if (!Array.isArray(result.strengths)) result.strengths = [String(result.strengths)];
+  if (!Array.isArray(result.weaknesses)) result.weaknesses = [String(result.weaknesses)];
+  if (!Array.isArray(result.recommendations)) result.recommendations = [String(result.recommendations)];
+  if (!Array.isArray(result.keyInsights)) result.keyInsights = [String(result.keyInsights)];
+
+  // Filter out any empty values
+  result.strengths = result.strengths.filter(s => s && s.trim());
+  result.weaknesses = result.weaknesses.filter(w => w && w.trim());
+  result.recommendations = result.recommendations.filter(r => r && r.trim());
+  result.keyInsights = result.keyInsights.filter(k => k && k.trim());
+
+  // Add fallbacks if everything is empty
+  if (result.strengths.length === 0) result.strengths = ["Demonstrated some understanding of the material"];
+  if (result.weaknesses.length === 0) result.weaknesses = ["Areas for improvement identified"];
+  if (result.recommendations.length === 0) result.recommendations = ["Review the material and practice more"];
+  if (result.keyInsights.length === 0) result.keyInsights = ["Keep practicing to improve"];
+
+  return result;
+}
+
+simpleJsonRepair(jsonString) {
+  try {
+    // Remove the problematic fixAnalysisJsonIssues and use a simpler approach
+    
+    // Fix 1: Ensure proper array commas (basic fix)
+    let fixed = jsonString.replace(/,(\s*[}\]])/g, '$1'); // Remove trailing commas
+    
+    // Fix 2: Ensure strings are properly quoted in arrays (basic cases)
+    fixed = fixed.replace(/(\[[^\]]*)([a-zA-Z_][a-zA-Z0-9_,\s]*)([^\]]*\])/g, (match, before, unquoted, after) => {
+      // Only fix if it looks like unquoted strings in array
+      if (unquoted.trim().length > 0 && !unquoted.includes('"') && !unquoted.includes("'")) {
+        const quoted = unquoted.split(',').map(item => 
+          item.trim() ? `"${item.trim()}"` : ''
+        ).filter(item => item).join(',');
+        return before + quoted + after;
+      }
+      return match;
+    });
+
+    // Fix 3: Handle common unescaped quote patterns more carefully
+    // Don't aggressively replace quotes - this often breaks valid JSON
+    fixed = fixed.replace(/(?<!\\)"(?=(?:[^"]*"[^"]*")*[^"]*$)/g, '\\"');
+
+    const parsed = JSON.parse(fixed);
+    return this.validateAnalysisStructure(parsed);
+  } catch (error) {
+    console.log("Manual repair failed:", error.message);
+    return null;
+  }
+}
 
   fixAnalysisJsonIssues(jsonString) {
     let fixed = jsonString;
@@ -481,64 +531,43 @@ IMPORTANT: No thinking process, no <think> tags, no additional text. ONLY the JS
   }
 
   async analyzePerformance(questions, userAnswers, score) {
-    try {
-      // Prepare data for AI analysis
-      const quizData = questions.map((question, index) => ({
-        question: question.question,
-        type: question.type,
-        correctAnswer: question.correctAnswer,
-        userAnswer: userAnswers[index],
-        isCorrect:
-          question.type === "mcq"
-            ? userAnswers[index] === question.correctAnswer
-            : userAnswers[index] && userAnswers[index].trim().length > 0,
-        explanation: question.explanation,
-      }));
+  try {
+    // Prepare data for AI analysis
+    const quizData = questions.map((question, index) => ({
+      question: question.question,
+      type: question.type,
+      correctAnswer: question.correctAnswer,
+      userAnswer: userAnswers[index] || 'Not answered',
+      isCorrect: question.type === "mcq" 
+        ? userAnswers[index] === question.correctAnswer
+        : !!(userAnswers[index] && userAnswers[index].trim().length > 0),
+    }));
 
-      const prompt = `
-CRITICAL: You MUST return ONLY valid JSON format. Do not include any thinking process, explanations, or markdown.
+    const prompt = `
+Analyze this quiz performance and return ONLY valid JSON.
 
-Analyze this quiz performance and provide insights about the student's strengths and weaknesses.
+Quiz Data: ${JSON.stringify(quizData, null, 2)}
+Score: ${score}%
 
-QUIZ PERFORMANCE DATA:
-${JSON.stringify(quizData, null, 2)}
-
-OVERALL SCORE: ${score}%
-
-Return ONLY valid JSON in this exact format:
+Return JSON in this exact format (all fields must be arrays):
 {
-  "strengths": [
-    "Specific strength area 1",
-    "Specific strength area 2"
-  ],
-  "weaknesses": [
-    "Specific weakness area 1 with explanation",
-    "Specific weakness area 2 with explanation"
-  ],
-  "recommendations": [
-    "Specific study recommendation 1",
-    "Specific study recommendation 2"
-  ],
-  "keyInsights": [
-    "Key insight about learning patterns",
-    "Another key insight"
-  ]
+  "strengths": ["strength1", "strength2"],
+  "weaknesses": ["weakness1", "weakness2"], 
+  "recommendations": ["recommendation1", "recommendation2"],
+  "keyInsights": ["insight1", "insight2"]
 }
 
-IMPORTANT: No thinking process, no <think> tags, no additional text. ONLY the JSON object.
+IMPORTANT: Return ONLY the JSON object, no other text.
     `;
 
-      const analysisResponse = await aiService.generateContent(prompt);
-
-      // Use the robust parsing method
-      return this.parseAnalysisResponse(analysisResponse);
-    } catch (error) {
-      console.error("AI analysis failed:", error);
-
-      // Return a basic analysis instead of throwing
-      return this.getBasicAnalysis(questions, userAnswers, score);
-    }
+    const analysisResponse = await aiService.generateContent(prompt);
+    return this.parseAnalysisResponse(analysisResponse);
+    
+  } catch (error) {
+    console.error("AI analysis failed, using fallback:", error.message);
+    return this.getBasicAnalysis(questions, userAnswers, score);
   }
+}
 
   getBasicAnalysis(questions, userAnswers, score) {
     // Basic analysis without AI
