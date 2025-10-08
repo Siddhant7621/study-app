@@ -1,5 +1,7 @@
 import express from 'express';
 import Book from '../models/Book.js';
+import { authMiddleware } from '../middleware/auth.js';
+import User from '../models/User.js';
 
 const router = express.Router();
 
@@ -39,6 +41,26 @@ router.delete('/:id', async (req, res) => {
   } catch (error) {
     console.error('Error deleting book:', error);
     res.status(500).json({ error: 'Failed to delete book' });
+  }
+});
+
+// Mark book as completed
+// In backend/routes/books.js
+// In backend/routes/books.js
+router.patch('/:id/complete', authMiddleware, async (req, res) => {
+  try {
+    // Simply add book to user's completed books
+    await User.findByIdAndUpdate(
+      req.user._id,
+      { $addToSet: { completedBooks: req.params.id } }
+    );
+
+    res.json({ 
+      message: 'Book marked as completed successfully'
+    });
+  } catch (error) {
+    console.error('Book completion error:', error);
+    res.status(500).json({ error: 'Failed to mark book as completed' });
   }
 });
 

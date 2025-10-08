@@ -18,6 +18,18 @@ const userSchema = new mongoose.Schema({
     required: true,
     minlength: 6
   },
+  
+  // Simple arrays of book IDs
+  uploadedBooks: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Book'
+  }],
+  
+  completedBooks: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Book'
+  }],
+  
   createdAt: {
     type: Date,
     default: Date.now
