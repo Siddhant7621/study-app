@@ -135,21 +135,21 @@ function App() {
           toastOptions={{
             duration: 4000,
             style: {
-              background: '#363636',
-              color: '#fff',
+              background: "#363636",
+              color: "#fff",
             },
             success: {
               duration: 3000,
               iconTheme: {
-                primary: '#10B981',
-                secondary: '#fff',
+                primary: "#10B981",
+                secondary: "#fff",
               },
             },
             error: {
               duration: 4000,
               iconTheme: {
-                primary: '#EF4444',
-                secondary: '#fff',
+                primary: "#EF4444",
+                secondary: "#fff",
               },
             },
           }}
@@ -214,21 +214,21 @@ function App() {
         toastOptions={{
           duration: 4000,
           style: {
-            background: '#363636',
-            color: '#fff',
+            background: "#363636",
+            color: "#fff",
           },
           success: {
             duration: 3000,
             iconTheme: {
-              primary: '#10B981',
-              secondary: '#fff',
+              primary: "#10B981",
+              secondary: "#fff",
             },
           },
           error: {
             duration: 4000,
             iconTheme: {
-              primary: '#EF4444',
-              secondary: '#fff',
+              primary: "#EF4444",
+              secondary: "#fff",
             },
           },
         }}
@@ -245,10 +245,8 @@ function App() {
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 {user.name}
               </h3>
-              <p className="text-gray-600 mb-4">
-                {user.email}
-              </p>
-              
+              <p className="text-gray-600 mb-4">{user.email}</p>
+
               <div className="flex gap-3 justify-center">
                 <button
                   onClick={() => setShowUserMenu(false)}
@@ -271,7 +269,7 @@ function App() {
 
       <div className="min-h-screen bg-gray-50">
         {/* Header with User Info */}
-        <header className="bg-white shadow-sm border-b border-gray-200">
+        <header className="bg-white shadow-sm border-b border-gray-200 ">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               <div className="flex items-center space-x-3">
@@ -344,7 +342,10 @@ function App() {
 
               {/* Navigation Tabs - Made responsive */}
               <div className="border-b border-gray-200">
-                <nav className="flex space-x-1 px-6 overflow-x-auto" aria-label="Tabs">
+                <nav
+                  className="flex space-x-1 px-6 overflow-x-auto"
+                  aria-label="Tabs"
+                >
                   <button
                     onClick={() => setActiveTab(0)}
                     className={`${getTabClass(0)} whitespace-nowrap`}

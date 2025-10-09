@@ -51,7 +51,7 @@ const upload = multer({
 // Upload PDF to Cloudinary
 router.post("/", authMiddleware, upload.single("pdf"), async (req, res) => {
   let cloudinaryResult = null;
-  
+
   try {
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded" });
@@ -61,25 +61,28 @@ router.post("/", authMiddleware, upload.single("pdf"), async (req, res) => {
 
     // Upload to Cloudinary with explicit PDF settings
     cloudinaryResult = await cloudinary.uploader.upload(req.file.path, {
-      resource_type: 'raw', // Use 'raw' for PDF files
-      type: 'authenticated', // Try 'authenticated' if 'upload' doesn't work
-      folder: 'study-app/books',
+      resource_type: "raw", // Use 'raw' for PDF files
+      type: "authenticated", // Try 'authenticated' if 'upload' doesn't work
+      folder: "study-app/books",
       use_filename: true,
       unique_filename: true,
-      access_mode: 'public',
-      allowed_formats: ['pdf'], // Explicitly allow PDF format
-      quality: 'auto', // For potential optimization
-      flags: 'attachment' // Optional: force download behavior
+      access_mode: "public",
+      allowed_formats: ["pdf"], // Explicitly allow PDF format
+      quality: "auto", // For potential optimization
+      flags: "attachment", // Optional: force download behavior
     });
 
-    console.log("✅ Cloudinary upload successful:", cloudinaryResult.secure_url);
+    console.log(
+      "✅ Cloudinary upload successful:",
+      cloudinaryResult.secure_url
+    );
 
     // Extract text from PDF
     const textContent = await extractTextFromPDF(req.file.path);
 
     // Get the original filename without extension
-    const originalName = req.file.originalname.replace('.pdf', '');
-    
+    const originalName = req.file.originalname.replace(".pdf", "");
+
     // Save book to database
     const book = new Book({
       title: req.body.title || originalName,
@@ -117,17 +120,20 @@ router.post("/", authMiddleware, upload.single("pdf"), async (req, res) => {
         uploadDate: book.uploadDate,
       },
     });
-
   } catch (error) {
     console.error("Upload error:", error);
-    
+
     // More specific error handling for Cloudinary
-    if (error.message.includes('Format') || error.message.includes('not allowed')) {
-      return res.status(400).json({ 
-        error: "PDF files are not allowed by your Cloudinary configuration. Please check your security settings."
+    if (
+      error.message.includes("Format") ||
+      error.message.includes("not allowed")
+    ) {
+      return res.status(400).json({
+        error:
+          "PDF files are not allowed by your Cloudinary configuration. Please check your security settings.",
       });
     }
-    
+
     res.status(500).json({ error: "Failed to upload file" });
   }
 });
@@ -136,14 +142,16 @@ router.post("/", authMiddleware, upload.single("pdf"), async (req, res) => {
 router.delete("/:id", authMiddleware, async (req, res) => {
   try {
     const book = await Book.findById(req.params.id);
-    
+
     if (!book) {
       return res.status(404).json({ error: "Book not found" });
     }
 
     // Check if user owns the book
     if (book.uploadedBy.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ error: "Not authorized to delete this book" });
+      return res
+        .status(403)
+        .json({ error: "Not authorized to delete this book" });
     }
 
     // Delete from Cloudinary if cloudinaryId exists
@@ -175,9 +183,9 @@ router.delete("/:id", authMiddleware, async (req, res) => {
       $pull: { uploadedBooks: req.params.id },
     });
 
-    res.json({ 
-      success: true, 
-      message: "Book deleted successfully" 
+    res.json({
+      success: true,
+      message: "Book deleted successfully",
     });
   } catch (error) {
     console.error("Delete error:", error);
@@ -189,9 +197,9 @@ router.delete("/:id", authMiddleware, async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     const books = await Book.find()
-      .populate('uploadedBy', 'name email')
+      .populate("uploadedBy", "name email")
       .sort({ uploadDate: -1 });
-    
+
     res.json(books);
   } catch (error) {
     console.error("Fetch books error:", error);
@@ -202,13 +210,15 @@ router.get("/", async (req, res) => {
 // Get single book
 router.get("/:id", async (req, res) => {
   try {
-    const book = await Book.findById(req.params.id)
-      .populate('uploadedBy', 'name email');
-    
+    const book = await Book.findById(req.params.id).populate(
+      "uploadedBy",
+      "name email"
+    );
+
     if (!book) {
       return res.status(404).json({ error: "Book not found" });
     }
-    
+
     res.json(book);
   } catch (error) {
     console.error("Fetch book error:", error);

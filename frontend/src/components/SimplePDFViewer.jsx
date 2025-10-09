@@ -10,14 +10,35 @@ const CompletionModal = ({
   onConfirm,
 }) => {
   const CheckIcon = () => (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+    <svg
+      className="w-5 h-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M5 13l4 4L19 7"
+      />
     </svg>
   );
 
   const LoadingSpinner = () => (
-    <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+    <svg
+      className="animate-spin h-5 w-5 text-white"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      />
       <path
         className="opacity-75"
         fill="currentColor"
@@ -103,68 +124,127 @@ const SimplePDFViewer = ({ fileUrl, bookId, onBookCompleted }) => {
 
   // Icons
   const OpenInNewIcon = () => (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+    <svg
+      className="w-5 h-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
         d="M10 6H6a2 2 0 00-2 2v10a2
            2 0 002 2h10a2 2 0 002-2v-4M14
-           4h6m0 0v6m0-6L10 14" />
+           4h6m0 0v6m0-6L10 14"
+      />
     </svg>
   );
 
   const DownloadIcon = () => (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+    <svg
+      className="w-5 h-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
         d="M12 10v6m0 0l-3-3m3 3l3-3m2
            8H7a2 2 0 01-2-2V5a2 2 0
            012-2h5.586a1 1 0
            01.707.293l5.414
            5.414a1 1 0
            01.293.707V19a2
-           2 0 01-2 2z" />
+           2 0 01-2 2z"
+      />
     </svg>
   );
 
   const DocumentIcon = () => (
-    <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+    <svg
+      className="w-12 h-12 text-gray-400"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
         d="M9 12h6m-6 4h6m2
            5H7a2 2 0 01-2-2V5a2
            2 0 012-2h5.586a1 1 0
            01.707.293l5.414
            5.414a1 1 0
            01.293.707V19a2
-           2 0 01-2 2z" />
+           2 0 01-2 2z"
+      />
     </svg>
   );
 
   const CheckIcon = () => (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-        d="M5 13l4 4L19 7" />
+    <svg
+      className="w-5 h-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M5 13l4 4L19 7"
+      />
     </svg>
   );
 
   const CloudIcon = () => (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+    <svg
+      className="w-5 h-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
         d="M3 15a4 4 0 004 4h9a5
            5 0 10-.1-9.999 5.002
            5.002 0 10-9.78
            2.096A4.001 4.001
-           0 003 15z" />
+           0 003 15z"
+      />
     </svg>
   );
 
   const LoadingSpinner = () => (
-    <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-      <path className="opacity-75" fill="currentColor"
+    <svg
+      className="animate-spin h-5 w-5 text-white"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      ></circle>
+      <path
+        className="opacity-75"
+        fill="currentColor"
         d="M4 12a8 8 0 018-8V0C5.373
            0 0 5.373 0 12h4zm2
            5.291A7.962 7.962 0
            014 12H0c0 3.042
            1.135 5.824 3
-           7.938l3-2.647z"></path>
+           7.938l3-2.647z"
+      ></path>
     </svg>
   );
 
@@ -220,7 +300,9 @@ const SimplePDFViewer = ({ fileUrl, bookId, onBookCompleted }) => {
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
         <DocumentIcon />
-        <h3 className="text-lg font-medium text-gray-900 mt-4">No PDF selected</h3>
+        <h3 className="text-lg font-medium text-gray-900 mt-4">
+          No PDF selected
+        </h3>
         <p className="text-gray-500 mt-1">Please select a PDF to view</p>
       </div>
     );
@@ -235,7 +317,9 @@ const SimplePDFViewer = ({ fileUrl, bookId, onBookCompleted }) => {
         {/* Header */}
         <div className="sm:flex justify-between items-center mb-4">
           <div>
-            <h2 className="sm:text-xl text-sm font-semibold text-gray-900 ml-2">PDF Viewer</h2>
+            <h2 className="sm:text-xl text-sm font-semibold text-gray-900 ml-2">
+              PDF Viewer
+            </h2>
             <p className="text-gray-600 sm:text-sm text-xs mt-1 ml-2">
               {isCloudinaryUrl ? (
                 <span className="inline-flex items-center">
@@ -319,20 +403,34 @@ const SimplePDFViewer = ({ fileUrl, bookId, onBookCompleted }) => {
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-3 b mt-4">
           <div className="flex">
             <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+              <svg
+                className="h-5 w-5 text-blue-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
                   d="M13 16h-1v-4h-1m1-4h.01M21
                      12a9 9 0 11-18 0 9 9 0 0118
-                     0z" />
+                     0z"
+                />
               </svg>
             </div>
             <div className="ml-3">
               <h3 className="text-sm font-medium text-blue-800">
-                {isCloudinaryUrl ? "Cloudinary PDF Delivery" : "Best PDF Experience"}
+                {isCloudinaryUrl
+                  ? "Cloudinary PDF Delivery"
+                  : "Best PDF Experience"}
               </h3>
               <div className="mt-1 text-sm text-blue-700">
                 {isCloudinaryUrl ? (
-                  <p>Your PDF is being delivered via Cloudinary's global CDN for faster loading.</p>
+                  <p>
+                    Your PDF is being delivered via Cloudinary's global CDN for
+                    faster loading.
+                  </p>
                 ) : (
                   <p>Your browser's PDF viewer provides the best experience:</p>
                 )}

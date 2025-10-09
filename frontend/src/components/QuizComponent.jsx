@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { toast } from 'react-hot-toast';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { toast } from "react-hot-toast";
 
 const QuizComponent = ({ bookId }) => {
   const [quiz, setQuiz] = useState(null);
@@ -22,30 +22,31 @@ const QuizComponent = ({ bookId }) => {
     setLoading(true);
     // setGeneratingNewQuiz(false);
     try {
-      const response = await axios.post(`http://localhost:5001/api/quiz/generate/${bookId}`);
+      const response = await axios.post(
+        `http://localhost:5001/api/quiz/generate/${bookId}`
+      );
       setQuiz(response.data);
-      setUserAnswers(new Array(response.data.questions.length).fill(''));
+      setUserAnswers(new Array(response.data.questions.length).fill(""));
       setCurrentQuestion(0);
       setSubmitted(false);
       setResults(null);
-      toast.success('Quiz generated successfully!');
+      toast.success("Quiz generated successfully!");
     } catch (error) {
-      console.error('Failed to generate quiz:', error);
-      toast.error('Failed to generate quiz. Please try again.');
+      console.error("Failed to generate quiz:", error);
+      toast.error("Failed to generate quiz. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   const generateAnotherQuiz = async () => {
-  setGeneratingNewQuiz(true);
-  try {
-    await generateQuiz();
-  } finally {
-    setGeneratingNewQuiz(false);
-  }
-};
-
+    setGeneratingNewQuiz(true);
+    try {
+      await generateQuiz();
+    } finally {
+      setGeneratingNewQuiz(false);
+    }
+  };
 
   const handleAnswerChange = (value) => {
     const newAnswers = [...userAnswers];
@@ -55,34 +56,39 @@ const QuizComponent = ({ bookId }) => {
 
   const handleNext = () => {
     if (currentQuestion < quiz.questions.length - 1) {
-      setCurrentQuestion(prev => prev + 1);
+      setCurrentQuestion((prev) => prev + 1);
     }
   };
 
   const handlePrevious = () => {
     if (currentQuestion > 0) {
-      setCurrentQuestion(prev => prev - 1);
+      setCurrentQuestion((prev) => prev - 1);
     }
   };
 
   const handleSubmit = async () => {
-    if (userAnswers.some(answer => !answer)) {
-      if (!confirm('You have unanswered questions. Submit anyway?')) {
+    if (userAnswers.some((answer) => !answer)) {
+      if (!confirm("You have unanswered questions. Submit anyway?")) {
         return;
       }
     }
 
     setLoading(true);
     try {
-      const response = await axios.post(`http://localhost:5001/api/quiz/submit/${quiz._id}`, {
-        answers: userAnswers
-      });
+      const response = await axios.post(
+        `http://localhost:5001/api/quiz/submit/${quiz._id}`,
+        {
+          answers: userAnswers,
+        }
+      );
       setResults(response.data);
       setSubmitted(true);
-      toast.success(`Quiz submitted! Score: ${response.data.score.toFixed(1)}%`);
+      toast.success(
+        `Quiz submitted! Score: ${response.data.score.toFixed(1)}%`
+      );
     } catch (error) {
-      console.error('Submission failed:', error);
-      toast.error('Failed to submit quiz. Please try again.');
+      console.error("Submission failed:", error);
+      toast.error("Failed to submit quiz. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -90,27 +96,72 @@ const QuizComponent = ({ bookId }) => {
 
   // SVG Icons
   const LoadingSpinner = () => (
-    <svg className="animate-spin h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24">
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    <svg
+      className="animate-spin h-6 w-6 text-blue-600"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      ></circle>
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+      ></path>
     </svg>
   );
 
   const PreviousIcon = () => (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+    <svg
+      className="w-5 h-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M15 19l-7-7 7-7"
+      />
     </svg>
   );
 
   const NextIcon = () => (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+    <svg
+      className="w-5 h-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M9 5l7 7-7 7"
+      />
     </svg>
   );
 
   const RefreshIcon = () => (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+    <svg
+      className="w-5 h-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+      />
     </svg>
   );
 
@@ -119,8 +170,12 @@ const QuizComponent = ({ bookId }) => {
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center">
         <div className="text-4xl mb-4">🧠</div>
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">Ready to Test Your Knowledge?</h3>
-        <p className="text-gray-600 mb-6">Generate a quiz based on your book content</p>
+        <h3 className="text-xl font-semibold text-gray-900 mb-2">
+          Ready to Test Your Knowledge?
+        </h3>
+        <p className="text-gray-600 mb-6">
+          Generate a quiz based on your book content
+        </p>
         <button
           onClick={generateQuiz}
           disabled={loading}
@@ -145,11 +200,15 @@ const QuizComponent = ({ bookId }) => {
   if (loading && !quiz) {
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Generating Quiz...</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Generating Quiz...
+        </h3>
         <div className="w-full bg-gray-200 rounded-full h-2">
           <div className="bg-blue-600 h-2 rounded-full animate-pulse"></div>
         </div>
-        <p className="text-gray-600 text-center mt-2">Creating personalized questions for you...</p>
+        <p className="text-gray-600 text-center mt-2">
+          Creating personalized questions for you...
+        </p>
       </div>
     );
   }
@@ -157,15 +216,18 @@ const QuizComponent = ({ bookId }) => {
   if (submitted && results) {
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 className="text-2xl font-bold text-blue-600 mb-4">Quiz Completed! 🎉</h2>
-        
+        <h2 className="text-2xl font-bold text-blue-600 mb-4">
+          Quiz Completed! 🎉
+        </h2>
+
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <div className="text-center">
             <p className="text-lg font-semibold text-blue-800">
-              Score: {results.correctAnswers} / {results.totalQuestions} ({results.score.toFixed(1)}%)
+              Score: {results.correctAnswers} / {results.totalQuestions} (
+              {results.score.toFixed(1)}%)
             </p>
             <div className="w-full bg-blue-200 rounded-full h-2 mt-2">
-              <div 
+              <div
                 className="bg-blue-600 h-2 rounded-full transition-all duration-500"
                 style={{ width: `${results.score}%` }}
               ></div>
@@ -180,19 +242,23 @@ const QuizComponent = ({ bookId }) => {
               <span className="text-xl mr-2">🤖</span>
               AI Learning Analysis
             </h4>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-white rounded-lg p-4 border border-green-200">
-                <h5 className="font-semibold text-green-700 mb-2">✅ Strengths</h5>
+                <h5 className="font-semibold text-green-700 mb-2">
+                  ✅ Strengths
+                </h5>
                 <ul className="text-sm text-green-600 space-y-1">
                   {results.analysis.strengths?.map((strength, index) => (
                     <li key={index}>• {strength}</li>
                   ))}
                 </ul>
               </div>
-              
+
               <div className="bg-white rounded-lg p-4 border border-yellow-200">
-                <h5 className="font-semibold text-yellow-700 mb-2">💡 Areas to Improve</h5>
+                <h5 className="font-semibold text-yellow-700 mb-2">
+                  💡 Areas to Improve
+                </h5>
                 <ul className="text-sm text-yellow-600 space-y-1">
                   {results.analysis.weaknesses?.map((weakness, index) => (
                     <li key={index}>• {weakness}</li>
@@ -200,9 +266,11 @@ const QuizComponent = ({ bookId }) => {
                 </ul>
               </div>
             </div>
-            
+
             <div className="mt-4 bg-white rounded-lg p-4 border border-blue-200">
-              <h5 className="font-semibold text-blue-700 mb-2">🎯 Recommendations</h5>
+              <h5 className="font-semibold text-blue-700 mb-2">
+                🎯 Recommendations
+              </h5>
               <ul className="text-sm text-blue-600 space-y-1">
                 {results.analysis.recommendations?.map((rec, index) => (
                   <li key={index}>• {rec}</li>
@@ -217,16 +285,21 @@ const QuizComponent = ({ bookId }) => {
             <div
               key={index}
               className={`border-2 rounded-lg p-4 ${
-                result.isCorrect 
-                  ? 'border-green-500 bg-green-50' 
-                  : 'border-red-500 bg-red-50'
+                result.isCorrect
+                  ? "border-green-500 bg-green-50"
+                  : "border-red-500 bg-red-50"
               }`}
             >
               <h4 className="font-semibold text-gray-900 mb-2">
                 Q{index + 1}: {result.question}
               </h4>
-              <p className={`mb-1 ${result.isCorrect ? 'text-green-700' : 'text-red-700'}`}>
-                <strong>Your answer:</strong> {result.userAnswer || 'Not answered'}
+              <p
+                className={`mb-1 ${
+                  result.isCorrect ? "text-green-700" : "text-red-700"
+                }`}
+              >
+                <strong>Your answer:</strong>{" "}
+                {result.userAnswer || "Not answered"}
               </p>
               <p className="text-green-700 mb-2">
                 <strong>Correct answer:</strong> {result.correctAnswer}
@@ -263,7 +336,7 @@ const QuizComponent = ({ bookId }) => {
               setQuiz(null);
               setResults(null);
               setSubmitted(false);
-              toast('Returned to quiz menu');
+              toast("Returned to quiz menu");
             }}
             className="inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 font-medium rounded-lg transition-colors duration-200"
           >
@@ -275,7 +348,8 @@ const QuizComponent = ({ bookId }) => {
   }
 
   const currentQ = quiz.questions[currentQuestion];
-  const progressPercentage = ((currentQuestion + 1) / quiz.questions.length) * 100;
+  const progressPercentage =
+    ((currentQuestion + 1) / quiz.questions.length) * 100;
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -300,7 +374,7 @@ const QuizComponent = ({ bookId }) => {
       {/* Progress Bar */}
       <div className="mb-6">
         <div className="w-full bg-gray-200 rounded-full h-2">
-          <div 
+          <div
             className="bg-blue-600 h-2 rounded-full transition-all duration-300"
             style={{ width: `${progressPercentage}%` }}
           ></div>
@@ -314,19 +388,19 @@ const QuizComponent = ({ bookId }) => {
         </h3>
 
         {/* Multiple Choice Questions */}
-        {currentQ.type === 'mcq' && (
+        {currentQ.type === "mcq" && (
           <div className="space-y-3">
             {currentQ.options.map((option, index) => {
               const optionLetter = String.fromCharCode(65 + index); // A, B, C, D
               const isSelected = userAnswers[currentQuestion] === optionLetter;
-              
+
               return (
                 <label
                   key={index}
                   className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition-colors duration-200 ${
                     isSelected
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 bg-white hover:bg-gray-50'
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-gray-200 bg-white hover:bg-gray-50"
                   }`}
                 >
                   <input
@@ -337,13 +411,18 @@ const QuizComponent = ({ bookId }) => {
                     onChange={(e) => handleAnswerChange(e.target.value)}
                     className="hidden"
                   />
-                  <div className={`flex-shrink-0 w-5 h-5 border-2 rounded-full mr-3 flex items-center justify-center ${
-                    isSelected ? 'border-blue-500' : 'border-gray-400'
-                  }`}>
-                    {isSelected && <div className="w-2 h-2 bg-blue-500 rounded-full"></div>}
+                  <div
+                    className={`flex-shrink-0 w-5 h-5 border-2 rounded-full mr-3 flex items-center justify-center ${
+                      isSelected ? "border-blue-500" : "border-gray-400"
+                    }`}
+                  >
+                    {isSelected && (
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    )}
                   </div>
                   <span className="text-gray-900">
-                    <span className="font-medium">{optionLetter}.</span> {option}
+                    <span className="font-medium">{optionLetter}.</span>{" "}
+                    {option}
                   </span>
                 </label>
               );
@@ -352,9 +431,9 @@ const QuizComponent = ({ bookId }) => {
         )}
 
         {/* Short Answer Questions */}
-        {currentQ.type === 'saq' && (
+        {currentQ.type === "saq" && (
           <textarea
-            value={userAnswers[currentQuestion] || ''}
+            value={userAnswers[currentQuestion] || ""}
             onChange={(e) => handleAnswerChange(e.target.value)}
             placeholder="Type your short answer here..."
             rows={4}
@@ -363,9 +442,9 @@ const QuizComponent = ({ bookId }) => {
         )}
 
         {/* Long Answer Questions */}
-        {currentQ.type === 'laq' && (
+        {currentQ.type === "laq" && (
           <textarea
-            value={userAnswers[currentQuestion] || ''}
+            value={userAnswers[currentQuestion] || ""}
             onChange={(e) => handleAnswerChange(e.target.value)}
             placeholder="Type your detailed answer here..."
             rows={6}
@@ -397,7 +476,7 @@ const QuizComponent = ({ bookId }) => {
                 <span className="ml-2">Submitting...</span>
               </>
             ) : (
-              'Submit Quiz'
+              "Submit Quiz"
             )}
           </button>
         ) : (
@@ -419,10 +498,10 @@ const QuizComponent = ({ bookId }) => {
             onClick={() => setCurrentQuestion(index)}
             className={`w-3 h-3 rounded-full transition-colors duration-200 ${
               index === currentQuestion
-                ? 'bg-blue-600'
+                ? "bg-blue-600"
                 : userAnswers[index]
-                ? 'bg-green-500'
-                : 'bg-gray-300'
+                ? "bg-green-500"
+                : "bg-gray-300"
             }`}
             title={`Question ${index + 1}`}
           />

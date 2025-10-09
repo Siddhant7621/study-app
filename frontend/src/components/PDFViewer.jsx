@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Document, Page, pdfjs } from 'react-pdf';
+import React, { useState, useEffect } from "react";
+import { Document, Page, pdfjs } from "react-pdf";
 
 // Use CDN for PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
@@ -11,7 +11,7 @@ const PDFViewer = ({ fileUrl }) => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  console.log('📄 PDFViewer fileUrl:', fileUrl);
+  console.log("📄 PDFViewer fileUrl:", fileUrl);
 
   useEffect(() => {
     setNumPages(null);
@@ -21,14 +21,14 @@ const PDFViewer = ({ fileUrl }) => {
   }, [fileUrl]);
 
   const onDocumentLoadSuccess = ({ numPages }) => {
-    console.log('✅ PDF loaded successfully, pages:', numPages);
+    console.log("✅ PDF loaded successfully, pages:", numPages);
     setNumPages(numPages);
     setError(null);
     setLoading(false);
   };
 
   const onDocumentLoadError = (error) => {
-    console.error('PDF load error:', error);
+    console.error("PDF load error:", error);
     setError(`PDF loading failed: ${error.message}`);
     setLoading(false);
   };
@@ -39,55 +39,131 @@ const PDFViewer = ({ fileUrl }) => {
   };
 
   const openInNewTab = () => {
-    window.open(fileUrl, '_blank');
+    window.open(fileUrl, "_blank");
   };
 
-  const goToPreviousPage = () => setPageNumber(prev => Math.max(prev - 1, 1));
-  const goToNextPage = () => setPageNumber(prev => Math.min(prev + 1, numPages || 1));
-  const zoomIn = () => setScale(prev => Math.min(prev + 0.2, 2.5));
-  const zoomOut = () => setScale(prev => Math.max(prev - 0.2, 0.5));
+  const goToPreviousPage = () => setPageNumber((prev) => Math.max(prev - 1, 1));
+  const goToNextPage = () =>
+    setPageNumber((prev) => Math.min(prev + 1, numPages || 1));
+  const zoomIn = () => setScale((prev) => Math.min(prev + 0.2, 2.5));
+  const zoomOut = () => setScale((prev) => Math.max(prev - 0.2, 0.5));
 
   // SVG Icons for Tailwind
   const PreviousIcon = () => (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+    <svg
+      className="w-5 h-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M15 19l-7-7 7-7"
+      />
     </svg>
   );
 
   const NextIcon = () => (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+    <svg
+      className="w-5 h-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M9 5l7 7-7 7"
+      />
     </svg>
   );
 
   const ZoomOutIcon = () => (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+    <svg
+      className="w-5 h-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M20 12H4"
+      />
     </svg>
   );
 
   const ZoomInIcon = () => (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+    <svg
+      className="w-5 h-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M12 4v16m8-8H4"
+      />
     </svg>
   );
 
   const RefreshIcon = () => (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+    <svg
+      className="w-5 h-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+      />
     </svg>
   );
 
   const OpenInNewIcon = () => (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+    <svg
+      className="w-5 h-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+      />
     </svg>
   );
 
   const LoadingSpinner = () => (
-    <svg className="animate-spin h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24">
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    <svg
+      className="animate-spin h-5 w-5 text-blue-600"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      ></circle>
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+      ></path>
     </svg>
   );
 
@@ -113,11 +189,11 @@ const PDFViewer = ({ fileUrl }) => {
             <PreviousIcon />
             <span className="ml-1">Previous</span>
           </button>
-          
+
           <span className="text-sm font-medium text-gray-700 px-3 py-2">
-            Page {pageNumber} of {numPages || '--'}
+            Page {pageNumber} of {numPages || "--"}
           </span>
-          
+
           <button
             onClick={goToNextPage}
             disabled={pageNumber >= (numPages || 1) || loading}
@@ -139,7 +215,9 @@ const PDFViewer = ({ fileUrl }) => {
           >
             <ZoomOutIcon />
           </button>
-          <span className="text-sm text-gray-600 px-2">{Math.round(scale * 100)}%</span>
+          <span className="text-sm text-gray-600 px-2">
+            {Math.round(scale * 100)}%
+          </span>
           <button
             onClick={zoomIn}
             disabled={scale >= 2.5}
@@ -170,7 +248,9 @@ const PDFViewer = ({ fileUrl }) => {
         <div className="mb-4 bg-red-50 border border-red-200 rounded-md p-4">
           <div className="flex justify-between items-start">
             <div className="flex-1">
-              <h3 className="text-sm font-medium text-red-800">Error loading PDF</h3>
+              <h3 className="text-sm font-medium text-red-800">
+                Error loading PDF
+              </h3>
               <p className="text-sm text-red-700 mt-1">{error}</p>
             </div>
             <button
@@ -188,10 +268,12 @@ const PDFViewer = ({ fileUrl }) => {
         {loading && !error && (
           <div className="text-center p-8">
             <LoadingSpinner />
-            <p className="text-sm text-gray-600 mt-3">Loading PDF document...</p>
+            <p className="text-sm text-gray-600 mt-3">
+              Loading PDF document...
+            </p>
           </div>
         )}
-        
+
         <Document
           file={fileUrl}
           onLoadSuccess={onDocumentLoadSuccess}
@@ -200,13 +282,15 @@ const PDFViewer = ({ fileUrl }) => {
           error={null}
         >
           {!loading && !error && numPages && (
-            <Page 
+            <Page
               pageNumber={pageNumber}
               scale={scale}
               loading={
                 <div className="text-center p-8">
                   <LoadingSpinner />
-                  <p className="text-sm text-gray-600 mt-3">Loading page {pageNumber}...</p>
+                  <p className="text-sm text-gray-600 mt-3">
+                    Loading page {pageNumber}...
+                  </p>
                 </div>
               }
             />

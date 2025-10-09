@@ -18,6 +18,8 @@ const ProgressDashboard = () => {
           'Authorization': `Bearer ${token}`
         }
       });
+      console.log('Fetched progress data:', response.data);
+      
       setProgressData(response.data);
     } catch (error) {
       console.error('Failed to fetch progress:', error);
@@ -84,6 +86,8 @@ const ProgressDashboard = () => {
   }
 
   const { userStats, quizPerformance, learningInsights, detailedProgress } = progressData;
+  console.log('detailedProgress:', detailedProgress);
+  
 
   return (
     <div className="space-y-6">
@@ -219,22 +223,22 @@ const ProgressDashboard = () => {
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-3 mr-2">
                       <BookIcon className={`w-5 h-5 ${
                         isCompleted ? 'text-green-600' : 'text-gray-400'
                       }`} />
                       <div>
-                        <h4 className="font-semibold text-gray-900">{bookProgress.bookTitle}</h4>
-                        <p className="text-sm text-gray-500">
+                        <h4 className="font-semibold sm:text-lg text-sm text-gray-900">{bookProgress.bookTitle}</h4>
+                        <p className="sm:text-sm text-xs text-gray-500">
                           {bookProgress.totalQuizzes} quizzes taken • {bookProgress.averageScore}% average score
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center space-x-3">
+                    <div className="sm:flex items-center space-x-3">
                       {/* MCQ Progress */}
                       {bookProgress.mcqStats.total > 0 && (
-                        <div className="text-sm text-gray-600">
+                        <div className="sm:text-sm text-xs text-gray-600">
                           <span className="font-medium">
                             {bookProgress.mcqStats.correct}/{bookProgress.mcqStats.total}
                           </span> MCQs correct
@@ -244,13 +248,13 @@ const ProgressDashboard = () => {
                       {/* Complete Checkbox */}
                       <button
                         onClick={() => markBookAsCompleted(bookProgress.bookId)}
-                        className={`flex items-center space-x-2 px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                        className={`flex sm:mt-0 mt-2   items-center space-x-2 sm:px-3 px-1 py-1 rounded-md sm:text-sm text-xs font-medium transition-colors ${
                           isCompleted
-                            ? 'bg-green-100 text-green-800 border border-green-200'
-                            : 'bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200'
+                            ? 'bg-green-100 text-green-800 border border-green-200 '
+                            : 'bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200 '
                         }`}
                       >
-                        <CheckIcon className="w-4 h-4" />
+                        <CheckIcon className="sm:w-4 sm:h-4 w-2 h-2 " />
                         <span>{isCompleted ? 'Completed' : 'Mark Complete'}</span>
                       </button>
                     </div>
@@ -314,7 +318,7 @@ const ProgressDashboard = () => {
       </div>
 
       {/* Simple Graph - MCQ Performance */}
-      {detailedProgress.length > 0 && (
+      {/* {detailedProgress.length > 0 && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 className="text-xl font-bold text-gray-900 mb-4">MCQ Performance by Book</h3>
           <div className="flex items-end justify-between h-32 space-x-2">
@@ -335,7 +339,7 @@ const ProgressDashboard = () => {
             ))}
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 };

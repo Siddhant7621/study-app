@@ -1,43 +1,63 @@
-import express from 'express';
-import { authMiddleware } from '../middleware/auth.js';
-import User from '../models/User.js';
-import Progress from '../models/Progress.js';
-import Book from '../models/Book.js';
+import express from "express";
+import { authMiddleware } from "../middleware/auth.js";
+import User from "../models/User.js";
+import Progress from "../models/Progress.js";
+import Book from "../models/Book.js";
 
 const router = express.Router();
 
 // Apply auth middleware to all routes
 router.use(authMiddleware);
 
-router.get('/', async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     const userId = req.user._id;
-    
+
     // Get user with populated uploaded and completed books
     const user = await User.findById(userId)
-      .populate('uploadedBooks', '_id title')
-      .populate('completedBooks', '_id title');
-    
-    // Get all progress documents for the user
-    const progress = await Progress.find({ userId: userId });
+      .populate("uploadedBooks", "_id title")
+      .populate("completedBooks", "_id title");
 
-    console.log('Fetched progress documents:', progress);
-    
+    // Get all progress documents for the user WITH populated bookId
+    const progress = await Progress.find({ userId: userId })
+      .populate("bookId", "_id title"); // Add this populate
+
+    console.log("Fetched progress documents:", progress);
 
     // Calculate totals across all progress documents
-    const totalMCQs = progress.reduce((sum, doc) => sum + (doc.totalMCQs || 0), 0);
-    const correctMCQs = progress.reduce((sum, doc) => sum + (doc.correctMCQs || 0), 0);
-    const correctMCQsPercentage = totalMCQs > 0 ? (correctMCQs / totalMCQs) * 100 : 0;
+    const totalMCQs = progress.reduce(
+      (sum, doc) => sum + (doc.totalMCQs || 0),
+      0
+    );
+    const correctMCQs = progress.reduce(
+      (sum, doc) => sum + (doc.correctMCQs || 0),
+      0
+    );
+    const correctMCQsPercentage =
+      totalMCQs > 0 ? (correctMCQs / totalMCQs) * 100 : 0;
 
     // Calculate average score across all quizzes
-    const totalQuizzes = progress.reduce((sum, doc) => sum + (doc.totalQuizzes || 0), 0);
-    const totalScore = progress.reduce((sum, doc) => sum + (doc.totalScore || 0), 0);
-    const overallAverageScore = totalQuizzes > 0 ? totalScore / totalQuizzes : 0;
+    const totalQuizzes = progress.reduce(
+      (sum, doc) => sum + (doc.totalQuizzes || 0),
+      0
+    );
+    const totalScore = progress.reduce(
+      (sum, doc) => sum + (doc.totalScore || 0),
+      0
+    );
+    const overallAverageScore =
+      totalQuizzes > 0 ? totalScore / totalQuizzes : 0;
 
     // Get unique strengths and weaknesses across all progress
-    const allStrengths = [...new Set(progress.flatMap(doc => doc.strengths || []))];
-    const allWeaknesses = [...new Set(progress.flatMap(doc => doc.weaknesses || []))];
-    const allRecommendations = [...new Set(progress.flatMap(doc => doc.recommendations || []))];
+    const allStrengths = [
+      ...new Set(progress.flatMap((doc) => doc.strengths || [])),
+    ];
+    const allWeaknesses = [
+      ...new Set(progress.flatMap((doc) => doc.weaknesses || [])),
+    ];
+    const allRecommendations = [
+      ...new Set(progress.flatMap((doc) => doc.recommendations || [])),
+    ];
 
     // Reshape the response
     const reshapedResponse = {
@@ -45,62 +65,69 @@ router.get('/', async (req, res) => {
         name: user.name,
         email: user.email,
         totalUploadedBooks: user.uploadedBooks.length,
-        uploadedBooks: user.uploadedBooks.map(book => ({
+        uploadedBooks: user.uploadedBooks.map((book) => ({
           id: book._id,
-          title: book.title
+          title: book.title,
         })),
         totalCompletedBooks: user.completedBooks.length,
-        completedBooks: user.completedBooks.map(book => ({
+        completedBooks: user.completedBooks.map((book) => ({
           id: book._id,
-          title: book.title
-        }))
+          title: book.title,
+        })),
       },
       quizPerformance: {
         totalQuizzes: totalQuizzes,
         totalMCQsAttempted: totalMCQs,
         correctMCQs: correctMCQs,
         correctMCQsPercentage: Math.round(correctMCQsPercentage * 100) / 100,
-        overallAverageScore: Math.round(overallAverageScore * 100) / 100
+        overallAverageScore: Math.round(overallAverageScore * 100) / 100,
       },
       learningInsights: {
         strengths: allStrengths,
         weaknesses: allWeaknesses,
-        recommendations: allRecommendations
+        recommendations: allRecommendations,
       },
-      detailedProgress: progress.map(doc => ({
+      detailedProgress: progress.map((doc) => ({
         bookId: doc.bookId?._id,
-        bookTitle: doc.bookId?.title || 'Unknown Book',
+        bookTitle: doc.bookId?.title || "Unknown Book", // Now this will work
         totalQuizzes: doc.totalQuizzes || 0,
         averageScore: Math.round((doc.averageScore || 0) * 100) / 100,
         mcqStats: {
           total: doc.totalMCQs || 0,
           correct: doc.correctMCQs || 0,
-          percentage: doc.totalMCQs > 0 ? Math.round((doc.correctMCQs / doc.totalMCQs) * 100 * 100) / 100 : 0
+          percentage:
+            doc.totalMCQs > 0
+              ? Math.round((doc.correctMCQs / doc.totalMCQs) * 100 * 100) / 100
+              : 0,
         },
         lastActivity: doc.lastActivity,
         strengths: doc.strengths || [],
-        weaknesses: doc.weaknesses || []
-      }))
+        weaknesses: doc.weaknesses || [],
+      })),
     };
+    console.log('detailedProgress:', progress);
+    
 
     res.json(reshapedResponse);
   } catch (error) {
-    console.error('Error fetching progress:', error);
-    res.status(500).json({ error: 'Failed to fetch progress' });
+    console.error("Error fetching progress:", error);
+    res.status(500).json({ error: "Failed to fetch progress" });
   }
 });
 
 // Get progress for a specific book
-router.get('/book/:bookId', async (req, res) => {
+router.get("/book/:bookId", async (req, res) => {
   try {
     const { bookId } = req.params;
-    const progress = await Progress.findOne({ 
-      user: req.user._id, 
-      bookId: bookId 
-    }).populate('bookId', 'title');
-    
+    const progress = await Progress.findOne({
+      user: req.user._id,
+      bookId: bookId,
+    }).populate("bookId", "title");
+
     if (!progress) {
-      return res.status(404).json({ error: 'Progress not found for this book' });
+      return res
+        .status(404)
+        .json({ error: "Progress not found for this book" });
     }
 
     const reshapedProgress = {
@@ -111,19 +138,24 @@ router.get('/book/:bookId', async (req, res) => {
       mcqStats: {
         total: progress.totalMCQs,
         correct: progress.correctMCQs,
-        percentage: progress.totalMCQs > 0 ? Math.round((progress.correctMCQs / progress.totalMCQs) * 100 * 100) / 100 : 0
+        percentage:
+          progress.totalMCQs > 0
+            ? Math.round(
+                (progress.correctMCQs / progress.totalMCQs) * 100 * 100
+              ) / 100
+            : 0,
       },
       strengths: progress.strengths,
       weaknesses: progress.weaknesses,
       recommendations: progress.recommendations,
       lastActivity: progress.lastActivity,
-      lastAnalysis: progress.lastAnalysis
+      lastAnalysis: progress.lastAnalysis,
     };
-    
+
     res.json(reshapedProgress);
   } catch (error) {
-    console.error('Error fetching book progress:', error);
-    res.status(500).json({ error: 'Failed to fetch book progress' });
+    console.error("Error fetching book progress:", error);
+    res.status(500).json({ error: "Failed to fetch book progress" });
   }
 });
 

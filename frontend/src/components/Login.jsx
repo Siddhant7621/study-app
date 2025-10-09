@@ -1,35 +1,34 @@
-import React, { useState } from 'react';
-import { Dialog, Transition } from '@headlessui/react';
-import { Fragment } from 'react';
-import axios from 'axios';
+import React, { useState } from "react";
+import { Dialog, Transition } from "@headlessui/react";
+import { Fragment } from "react";
+import axios from "axios";
 
 const Login = ({ isOpen, onClose, onLogin }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: ''
+    name: "",
+    email: "",
+    password: "",
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
-      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
+      const endpoint = isLogin ? "/api/auth/login" : "/api/auth/signup";
       const response = await axios.post(endpoint, formData);
-      
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-      
+
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+
       onLogin(response.data.user);
       onClose();
-      
     } catch (err) {
-      setError(err.response?.data?.error || 'Authentication failed');
+      setError(err.response?.data?.error || "Authentication failed");
     } finally {
       setLoading(false);
     }
@@ -38,17 +37,17 @@ const Login = ({ isOpen, onClose, onLogin }) => {
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
   const switchMode = () => {
     setIsLogin(!isLogin);
-    setError('');
+    setError("");
     setFormData({
-      name: '',
-      email: '',
-      password: ''
+      name: "",
+      email: "",
+      password: "",
     });
   };
 
@@ -83,7 +82,7 @@ const Login = ({ isOpen, onClose, onLogin }) => {
                   as="h3"
                   className="text-lg font-medium leading-6 text-gray-900"
                 >
-                  {isLogin ? 'Login to Study Assistant' : 'Create Account'}
+                  {isLogin ? "Login to Study Assistant" : "Create Account"}
                 </Dialog.Title>
 
                 <form onSubmit={handleSubmit} className="mt-4 space-y-4">
@@ -143,7 +142,7 @@ const Login = ({ isOpen, onClose, onLogin }) => {
                     disabled={loading}
                     className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                   >
-                    {loading ? 'Please wait...' : (isLogin ? 'Login' : 'Sign Up')}
+                    {loading ? "Please wait..." : isLogin ? "Login" : "Sign Up"}
                   </button>
 
                   <div className="text-center">
@@ -152,7 +151,9 @@ const Login = ({ isOpen, onClose, onLogin }) => {
                       onClick={switchMode}
                       className="text-blue-600 hover:text-blue-500 text-sm"
                     >
-                      {isLogin ? "Don't have an account? Sign up" : "Already have an account? Login"}
+                      {isLogin
+                        ? "Don't have an account? Sign up"
+                        : "Already have an account? Login"}
                     </button>
                   </div>
                 </form>

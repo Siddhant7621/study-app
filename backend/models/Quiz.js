@@ -1,39 +1,39 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const questionSchema = new mongoose.Schema({
   type: {
     type: String,
-    enum: ['mcq', 'saq', 'laq'],
-    required: true
+    enum: ["mcq", "saq", "laq"],
+    required: true,
   },
   question: {
     type: String,
-    required: true
+    required: true,
   },
   options: [String],
   correctAnswer: {
     type: String,
-    required: true
+    required: true,
   },
   explanation: {
     type: String,
-    required: true
-  }
+    required: true,
+  },
 });
 
 const quizSchema = new mongoose.Schema({
   bookId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Book',
-    required: true
+    ref: "Book",
+    required: true,
   },
   questions: [questionSchema],
   score: Number,
   completedAt: Date,
   createdAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
-export default mongoose.model('Quiz', quizSchema);
+export default mongoose.model("Quiz", quizSchema);
