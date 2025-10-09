@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
+import { server } from "../main";
 
 const UploadBook = ({ onBookSelect, books }) => {
   const [uploading, setUploading] = useState(false);
@@ -61,7 +62,7 @@ const UploadBook = ({ onBookSelect, books }) => {
 
     try {
       const response = await axios.post(
-        "http://localhost:5001/api/upload",
+        `${server}/api/upload`,
         formData,
         {
           headers: {

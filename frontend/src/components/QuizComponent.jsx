@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
+import { server } from "../main";
 
 const QuizComponent = ({ bookId }) => {
   const [quiz, setQuiz] = useState(null);
@@ -23,7 +24,7 @@ const QuizComponent = ({ bookId }) => {
     // setGeneratingNewQuiz(false);
     try {
       const response = await axios.post(
-        `http://localhost:5001/api/quiz/generate/${bookId}`
+        `${server}/quiz/generate/${bookId}`
       );
       setQuiz(response.data);
       setUserAnswers(new Array(response.data.questions.length).fill(""));
@@ -76,7 +77,7 @@ const QuizComponent = ({ bookId }) => {
     setLoading(true);
     try {
       const response = await axios.post(
-        `http://localhost:5001/api/quiz/submit/${quiz._id}`,
+        `${server}/quiz/submit/${quiz._id}`,
         {
           answers: userAnswers,
         }

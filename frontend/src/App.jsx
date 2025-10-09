@@ -21,6 +21,7 @@ import BookChat from "./components/BookChat";
 import VideoRecommendations from "./components/VideoRecommendations";
 import ProgressDashboard from "./components/ProgressDashboard";
 import Login from "./components/Login";
+import { server } from "./main";
 
 function TabPanel({ children, value, index }) {
   return (
@@ -49,7 +50,7 @@ function App() {
 
       if (token && userData) {
         // Verify token is still valid
-        const response = await axios.get("http://localhost:5001/api/auth/me", {
+        const response = await axios.get(`${server}/api/auth/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -71,7 +72,7 @@ function App() {
 
   const fetchBooks = async () => {
     try {
-      const response = await axios.get("http://localhost:5001/api/books");
+      const response = await axios.get(`${server}/api/books`);
       setBooks(response.data);
     } catch (error) {
       console.error("Failed to fetch books:", error);

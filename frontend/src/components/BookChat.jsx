@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
+import { server } from "../main";
 
 const BookChat = ({ bookId }) => {
   const [messages, setMessages] = useState([]);
@@ -25,7 +26,7 @@ const BookChat = ({ bookId }) => {
 
     try {
       const response = await axios.post(
-        `http://localhost:5001/api/chat/${bookId}`,
+        `${server}/api/chat/${bookId}`,
         {
           question: input,
         }

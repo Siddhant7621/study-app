@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { server } from "../main";
 
 // ✅ 1️⃣ Moved OUTSIDE main component
 const CompletionModal = ({
@@ -267,11 +268,11 @@ const SimplePDFViewer = ({ fileUrl, bookId, onBookCompleted }) => {
       console.log("📚 Marking book as completed:", {
         bookId,
         userFeedback,
-        fullURL: `http://localhost:5001/api/books/${bookId}/complete`,
+        fullURL: `${server}/api/books/${bookId}/complete`,
       });
 
       const response = await axios.patch(
-        `http://localhost:5001/api/books/${bookId}/complete`,
+        `${server}/api/books/${bookId}/complete`,
         { feedback: userFeedback }
       );
 
@@ -309,7 +310,7 @@ const SimplePDFViewer = ({ fileUrl, bookId, onBookCompleted }) => {
   }
 
   const isCloudinaryUrl = fileUrl.includes("cloudinary.com");
-  const isLocalUrl = fileUrl.includes("localhost:5001/uploads");
+  const isLocalUrl = fileUrl.includes(`${server}/uploads`);
 
   return (
     <>

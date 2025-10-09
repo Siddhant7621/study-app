@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { server } from '../main';
 
 const ProgressDashboard = () => {
   const [progressData, setProgressData] = useState(null);
@@ -13,7 +14,7 @@ const ProgressDashboard = () => {
   const fetchProgressData = async () => {
     try {
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-      const response = await axios.get('http://localhost:5001/api/progress', {
+      const response = await axios.get(`${server}/api/progress`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -31,7 +32,7 @@ const ProgressDashboard = () => {
   const markBookAsCompleted = async (bookId) => {
     try {
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-      await axios.patch(`http://localhost:5001/api/books/${bookId}/complete`, {}, {
+      await axios.patch(`${server}/api/books/${bookId}/complete`, {}, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
