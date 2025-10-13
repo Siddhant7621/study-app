@@ -15,6 +15,8 @@ router.use(authMiddleware);
 // In backend/routes/quiz.js
 router.post("/generate/:bookId", async (req, res) => {
   try {
+    console.log("book",req.params);
+    
     const { bookId } = req.params;
 
     const book = await Book.findById(bookId);

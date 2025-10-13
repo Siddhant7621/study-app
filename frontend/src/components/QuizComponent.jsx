@@ -23,8 +23,10 @@ const QuizComponent = ({ bookId }) => {
     setLoading(true);
     // setGeneratingNewQuiz(false);
     try {
+      console.log("Generating quiz for bookId:", bookId);
+      
       const response = await axios.post(
-        `${server}/quiz/generate/${bookId}`
+        `${server}/api/quiz/generate/${bookId}`
       );
       setQuiz(response.data);
       setUserAnswers(new Array(response.data.questions.length).fill(""));
@@ -77,7 +79,7 @@ const QuizComponent = ({ bookId }) => {
     setLoading(true);
     try {
       const response = await axios.post(
-        `${server}/quiz/submit/${quiz._id}`,
+        `${server}/api/quiz/submit/${quiz._id}`,
         {
           answers: userAnswers,
         }
