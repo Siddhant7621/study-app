@@ -1,6 +1,6 @@
 # 📘 Study Assistant– AI Learning Companion
 
-> A full-stack web app built as part of the **BeyondChats Full-Stack Developer Assignment**, designed to help school students revise their coursebooks using **AI-powered quizzes, chat, and progress tracking**.
+> A full-stack web app designed to help school students revise their coursebooks using **AI-powered quizzes, chat, and progress tracking**.
 
 ---
 
