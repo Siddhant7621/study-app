@@ -288,5 +288,4 @@ Full Stack Developer | Passionate about AI and EdTech 🚀
 🔗 https://github.com/Siddhant7621
 
 📄 License
-This project is submitted as part of the BeyondChats Full Stack Developer Assignment.
 All code and design are the intellectual property of Siddhant Sharma.
